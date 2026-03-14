@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shape Optimization with the Adjoint Method</title>
+  <title>Engineering Design Optimization</title>
   <link rel="stylesheet" href="css/presentation.css">
 </head>
 <body>
@@ -34,33 +34,55 @@
     <marker id="arrowhead-pink" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#ff4081"/>
     </marker>
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7394"/>
+    </marker>
   </defs>
 </svg>
 
 <!-- ============================================================
-     SLIDE 1 — Title
+     ACT 1: THE PROBLEM — Why Optimize?
      ============================================================ -->
+
+<!-- SLIDE 1 — Title -->
 <section class="slide title-slide layout-center active" id="slide-1">
   <div class="slide-content">
     <p class="label" style="letter-spacing:0.2em; margin-bottom:16px;">A Visual Explainer</p>
-    <h1>Shape Optimization with the Adjoint Method</h1>
-    <p class="subtitle" style="margin-top:12px;">From NURBS Control Points to Optimal Geometries</p>
+    <h1>Engineering Design Optimization</h1>
+    <p class="subtitle" style="margin-top:12px;">From Gradients to Multidisciplinary Systems</p>
     <div class="anim-step" style="margin-top:36px; display:flex; flex-direction:column; align-items:center; gap:12px;">
-      <p class="small-text" style="color:var(--text-dim); margin:0;">Based on <em>Engineering Design Optimization</em> by Martins &amp; Ning</p>
+      <p class="small-text" style="color:var(--text-dim); margin:0;">Based on <em>Engineering Design Optimization</em> by Martins &amp; Ning, 2022</p>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 2 — Why Shape Matters
-     ============================================================ -->
+<!-- SLIDE 2 — Why Optimization Matters -->
 <section class="slide layout-split" id="slide-2">
   <div class="slide-text">
     <p class="label">The Motivation</p>
-    <h2>Shape Determines Performance</h2>
-    <p>Small changes in geometry can cause <span class="text-cyan">large changes</span> in aerodynamic drag, structural stress, or heat transfer.</p>
+    <h2>Why Optimization Matters</h2>
+    <p>Small design changes can yield <span class="text-cyan">dramatic performance gains</span> &mdash; but only if we search systematically.</p>
     <div class="anim-step">
-      <p>Engineers have always known this. The question is: <span class="text-orange">how do we find the best shape systematically?</span></p>
+      <div class="example-row">
+        <div class="example-box">
+          <p class="example-label" style="color:var(--accent-cyan);">Aerodynamics</p>
+          <p>Optimized airfoil shapes reduce drag by <span class="text-cyan">25&ndash;75%</span></p>
+        </div>
+        <div class="example-box">
+          <p class="example-label" style="color:var(--accent-orange);">Structures</p>
+          <p>Topology optimization cuts weight by <span class="text-orange">40&ndash;60%</span></p>
+        </div>
+        <div class="example-box">
+          <p class="example-label" style="color:var(--accent-green);">Turbines</p>
+          <p>Blade profile tuning boosts efficiency by <span class="text-green">2&ndash;5%</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="anim-step">
+      <blockquote>
+        <p>&ldquo;The goal of engineering design optimization is to find the best design as measured by one or more quantities of interest, while satisfying all requirements and constraints.&rdquo;</p>
+        <span class="attribution">&mdash; Martins &amp; Ning, <em>Engineering Design Optimization</em>, 2022</span>
+      </blockquote>
     </div>
     <div class="anim-step">
       <div class="key-insight">
@@ -71,41 +93,60 @@
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg">
-        <!-- Blunt body -->
+        <!-- Flow direction -->
+        <text x="18" y="42" fill="#6b7394" font-size="10" font-family="Inter, sans-serif">Flow &rarr;</text>
+        <line x1="10" y1="48" x2="44" y2="48" stroke="#6b7394" stroke-width="0.8" marker-end="url(#arrowhead-white)" opacity="0.4"/>
+
+        <!-- THICK AIRFOIL — NACA 0024-like symmetric, chord ≈ 200 px -->
         <g>
-          <text x="130" y="80" fill="#ff4081" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">High Drag</text>
-          <path d="M 50 140 Q 50 100, 130 100 Q 210 100, 210 140 Q 210 180, 130 180 Q 50 180, 50 140 Z" fill="none" stroke="#ff4081" stroke-width="2.5"/>
-          <!-- Flow lines around blunt body -->
-          <path d="M 20 110 Q 60 90, 110 88" fill="none" stroke="#6b7394" stroke-width="1" opacity="0.5"/>
-          <path d="M 20 140 Q 45 140, 48 140" fill="none" stroke="#6b7394" stroke-width="1" opacity="0.5"/>
-          <path d="M 20 170 Q 60 190, 110 192" fill="none" stroke="#6b7394" stroke-width="1" opacity="0.5"/>
-          <text x="130" y="200" fill="#ff4081" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">C_D = 0.047</text>
+          <text x="130" y="62" fill="#ff4081" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Baseline Airfoil</text>
+          <!-- Airfoil body (thick, rounded LE, blunter TE) -->
+          <path d="M 30,130 C 34,106 62,94 102,90 C 142,86 192,106 232,130 C 192,154 142,174 102,170 C 62,166 34,154 30,130 Z"
+                fill="rgba(255,64,129,0.08)" stroke="#ff4081" stroke-width="2.5"/>
+          <!-- Streamlines — strongly deflected -->
+          <path d="M 8,88 C 32,82 62,76 102,73 C 144,70 196,78 248,90"  fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <path d="M 8,106 C 32,100 56,93 92,88 C 132,84 192,96 248,112" fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <path d="M 8,154 C 32,160 56,167 92,172 C 132,176 192,164 248,148" fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <path d="M 8,172 C 32,178 62,184 102,187 C 144,190 196,182 248,170" fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <!-- Thick wake (diverging dashed lines behind TE) -->
+          <path d="M 232,130 C 240,124 247,118 254,114" fill="none" stroke="#ff4081" stroke-width="1" opacity="0.35" stroke-dasharray="3,2"/>
+          <path d="M 232,130 C 240,136 247,142 254,146" fill="none" stroke="#ff4081" stroke-width="1" opacity="0.35" stroke-dasharray="3,2"/>
+          <text x="256" y="132" fill="#ff4081" font-size="9" font-family="Inter, sans-serif" opacity="0.5">wake</text>
+          <!-- Drag value -->
+          <rect x="68" y="191" width="126" height="28" rx="6" fill="rgba(255,64,129,0.08)" stroke="#ff4081" stroke-width="1"/>
+          <text x="131" y="210" fill="#ff4081" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500">c<tspan font-size="9" dy="3">d</tspan><tspan dy="-3"> = 0.0232</tspan></text>
         </g>
-        <!-- Streamlined body -->
+
+        <!-- THIN AIRFOIL — optimised, slight camber, chord ≈ 200 px -->
         <g class="anim-step">
-          <text x="370" y="80" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Low Drag</text>
-          <path d="M 280 140 Q 290 105, 350 105 Q 430 105, 460 140 Q 430 175, 350 175 Q 290 175, 280 140 Z" fill="none" stroke="#00e676" stroke-width="2.5"/>
-          <!-- Flow lines streamlined -->
-          <path d="M 250 110 Q 295 100, 340 103" fill="none" stroke="#6b7394" stroke-width="1" opacity="0.5"/>
-          <path d="M 250 140 Q 278 140, 280 140" fill="none" stroke="#6b7394" stroke-width="1" opacity="0.5"/>
-          <path d="M 250 170 Q 295 180, 340 177" fill="none" stroke="#6b7394" stroke-width="1" opacity="0.5"/>
-          <text x="370" y="200" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">C_D = 0.012</text>
+          <text x="370" y="62" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimized Airfoil</text>
+          <!-- Airfoil body (thin, cambered, sharp TE) -->
+          <path d="M 270,132 C 274,116 298,108 342,105 C 386,102 442,116 472,130 C 442,142 386,148 342,146 C 298,144 274,140 270,132 Z"
+                fill="rgba(0,230,118,0.08)" stroke="#00e676" stroke-width="2.5"/>
+          <!-- Streamlines — barely deflected -->
+          <path d="M 248,88 C 300,87 360,87 420,88 C 448,89 462,90 492,92"  fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <path d="M 248,106 C 300,104 342,102 390,104 C 430,106 455,110 492,114" fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <path d="M 248,154 C 300,155 342,155 390,153 C 430,151 455,149 492,147" fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <path d="M 248,172 C 300,173 360,173 420,172 C 448,171 462,170 492,168" fill="none" stroke="#6b7394" stroke-width="0.8" opacity="0.45"/>
+          <!-- Clean thin wake -->
+          <path d="M 472,130 L 492,130" fill="none" stroke="#00e676" stroke-width="0.6" opacity="0.25"/>
+          <!-- Drag value -->
+          <rect x="308" y="191" width="126" height="28" rx="6" fill="rgba(0,230,118,0.08)" stroke="#00e676" stroke-width="1"/>
+          <text x="371" y="210" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500">c<tspan font-size="9" dy="3">d</tspan><tspan dy="-3"> = 0.0058</tspan></text>
         </g>
-        <!-- Arrow between them -->
+
+        <!-- Comparison annotation -->
         <g class="anim-step">
-          <line x1="220" y1="260" x2="270" y2="260" stroke="#ffd740" stroke-width="2" marker-end="url(#arrowhead-yellow)"/>
-          <text x="245" y="285" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimization</text>
-          <text x="245" y="302" fill="#ffd740" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">75% drag reduction</text>
+          <line x1="195" y1="268" x2="278" y2="268" stroke="#ffd740" stroke-width="2" marker-end="url(#arrowhead-yellow)"/>
+          <text x="237" y="290" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimization</text>
+          <text x="237" y="308" fill="#ffd740" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">75% drag reduction</text>
         </g>
-        <!-- Markers defined in shared SVG above -->
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 3 — The Optimization Problem
-     ============================================================ -->
+<!-- SLIDE 3 — The Optimization Problem -->
 <section class="slide layout-center" id="slide-3">
   <div class="slide-content">
     <h2>The Optimization Problem</h2>
@@ -127,230 +168,214 @@
       <div class="card-row" style="max-width:900px; margin:16px auto;">
         <div class="card">
           <p class="label" style="color:var(--accent-cyan);">Design Variables x</p>
-          <p style="font-size:clamp(16px,1.6vw,24px);">Control point positions that define the shape</p>
+          <p style="font-size:clamp(16px,1.6vw,24px);">Shape coordinates, material thicknesses, angles &mdash; what we control</p>
         </div>
         <div class="card">
           <p class="label" style="color:var(--accent-orange);">Objective f(x)</p>
-          <p style="font-size:clamp(16px,1.6vw,24px);">Drag, weight, compliance &mdash; what we minimize</p>
+          <p style="font-size:clamp(16px,1.6vw,24px);">Drag, weight, fuel burn, compliance &mdash; what we minimize</p>
         </div>
         <div class="card">
           <p class="label" style="color:var(--accent-pink);">Constraints g(x)</p>
-          <p style="font-size:clamp(16px,1.6vw,24px);">Stress limits, volume, lift requirements</p>
+          <p style="font-size:clamp(16px,1.6vw,24px);">Stress limits, lift requirements, volume bounds</p>
         </div>
       </div>
     </div>
+    <p class="citation">[Martins &amp; Ning, Ch. 1, 2022]</p>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 4 — Parametrizing Shapes
-     ============================================================ -->
+<!-- SLIDE 4 — What Makes It Hard? (NEW) -->
 <section class="slide layout-center" id="slide-4">
   <div class="slide-content">
-    <h2>How Do We Describe a Shape Mathematically?</h2>
-    <p>We need a <span class="text-cyan">parametrization</span> &mdash; a way to define any shape using a finite set of numbers.</p>
-    <div class="anim-step">
-      <div class="two-col" style="max-width:900px; margin:20px auto;">
-        <div class="card">
-          <p class="label" style="color:var(--accent-pink);">Too Few Parameters</p>
-          <p style="font-size:clamp(16px,1.6vw,24px);">Limited design freedom. Might miss the optimal shape entirely.</p>
-        </div>
-        <div class="card">
-          <p class="label" style="color:var(--accent-pink);">Too Many Parameters</p>
-          <p style="font-size:clamp(16px,1.6vw,24px);">Expensive optimization. Difficult to converge.</p>
-        </div>
+    <h2>What Makes Design Optimization Hard?</h2>
+    <div class="card-row" style="max-width:900px; margin:20px auto;">
+      <div class="card">
+        <p class="label" style="color:var(--accent-pink);">Computational Cost</p>
+        <p style="font-size:clamp(16px,1.6vw,22px);">Each evaluation requires solving complex physics (CFD, FEA). A single simulation can take <span class="text-pink">hours to days</span>.</p>
+      </div>
+      <div class="card anim-step">
+        <p class="label" style="color:var(--accent-orange);">High Dimensionality</p>
+        <p style="font-size:clamp(16px,1.6vw,22px);">Real designs have <span class="text-orange">hundreds to thousands</span> of variables. Exhaustive search is impossible.</p>
+      </div>
+      <div class="card anim-step">
+        <p class="label" style="color:var(--accent-purple);">Coupled Disciplines</p>
+        <p style="font-size:clamp(16px,1.6vw,22px);">Aerodynamics, structures, and controls <span class="text-purple">interact</span>. Optimizing one can worsen another.</p>
       </div>
     </div>
     <div class="anim-step">
       <div class="key-insight" style="max-width:700px; margin:20px auto;">
-        <p><span class="text-cyan">NURBS</span> (Non-Uniform Rational B-Splines) give us smooth, flexible shapes with relatively few control parameters.</p>
+        <p>These three challenges motivate everything that follows: gradient-based methods, the adjoint method, and multidisciplinary optimization.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 5 — NURBS Introduction
-     ============================================================ -->
+<!-- SLIDE 5 — A Real Example: The Wing (NEW) -->
 <section class="slide layout-split" id="slide-5">
   <div class="slide-text">
-    <p class="label">Shape Parametrization</p>
-    <h2>NURBS Curves</h2>
-    <p><span class="text-cyan">Control points</span> define the shape — but the curve does <em>not</em> pass through them.</p>
+    <p class="label">The Central Example</p>
+    <h2>The Wing Design Problem</h2>
+    <p>A wing must balance <span class="text-cyan">aerodynamic</span> and <span class="text-orange">structural</span> objectives that directly conflict.</p>
     <div class="anim-step">
-      <p>The <span class="text-orange">control polygon</span> (connecting the control points) approximates the curve's shape.</p>
+      <div class="card" style="margin:12px 0; border-left:3px solid var(--accent-cyan);">
+        <p style="font-size:clamp(15px,1.5vw,21px); margin:0;"><span class="text-cyan">Aerodynamics</span> wants a thin, high-aspect-ratio wing &rarr; less drag</p>
+      </div>
+      <div class="card" style="margin:12px 0; border-left:3px solid var(--accent-orange);">
+        <p style="font-size:clamp(15px,1.5vw,21px); margin:0;"><span class="text-orange">Structures</span> wants a thick, short wing &rarr; less weight and stress</p>
+      </div>
     </div>
     <div class="anim-step">
-      <div class="formula">C(t) = &Sigma; N<sub>i,p</sub>(t) &middot; P<sub>i</sub></div>
-      <p class="small-text">where N<sub>i,p</sub> are B-spline basis functions and P<sub>i</sub> are control points</p>
-    </div>
-  </div>
-  <div class="slide-visual">
-    <div class="diagram-container">
-      <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" id="nurbs-static-svg">
-        <!-- Control points -->
-        <g id="nurbs-static-ctrl-polygon" class="anim-step">
-          <polyline points="60,300 140,80 260,60 360,200 440,280" fill="none" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.6"/>
-        </g>
-        <!-- Control points as circles -->
-        <circle cx="60" cy="300" r="8" fill="#00d4ff" opacity="0.9"/>
-        <circle cx="140" cy="80" r="8" fill="#00d4ff" opacity="0.9"/>
-        <circle cx="260" cy="60" r="8" fill="#00d4ff" opacity="0.9"/>
-        <circle cx="360" cy="200" r="8" fill="#00d4ff" opacity="0.9"/>
-        <circle cx="440" cy="280" r="8" fill="#00d4ff" opacity="0.9"/>
-        <!-- Labels -->
-        <text x="50" y="325" fill="#00d4ff" font-size="13" font-family="Inter, sans-serif">P₀</text>
-        <text x="130" y="70" fill="#00d4ff" font-size="13" font-family="Inter, sans-serif">P₁</text>
-        <text x="250" y="50" fill="#00d4ff" font-size="13" font-family="Inter, sans-serif">P₂</text>
-        <text x="370" y="195" fill="#00d4ff" font-size="13" font-family="Inter, sans-serif">P₃</text>
-        <text x="430" y="305" fill="#00d4ff" font-size="13" font-family="Inter, sans-serif">P₄</text>
-        <!-- B-spline curve (pre-computed cubic) -->
-        <path d="M 60,300 C 100,153 167,83 220,93 C 273,103 327,173 360,200 C 393,227 420,260 440,280" fill="none" stroke="#00d4ff" stroke-width="3"/>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SLIDE 6 — Basis Functions
-     ============================================================ -->
-<section class="slide layout-split" id="slide-6">
-  <div class="slide-text">
-    <h2>B-Spline Basis Functions</h2>
-    <p>Each control point P<sub>i</sub> has a corresponding basis function N<sub>i,p</sub>(t) that determines its <span class="text-orange">region of influence</span>.</p>
-    <div class="anim-step">
-      <p>Moving a control point only affects the curve <span class="text-cyan">locally</span> — not the entire shape.</p>
+      <blockquote style="font-size:clamp(13px,1.3vw,18px);">
+        <p>&ldquo;The wing is perhaps the most important component of an aircraft, and its design involves a fundamental tradeoff between aerodynamic efficiency and structural weight.&rdquo;</p>
+        <span class="attribution">&mdash; Martins &amp; Ning, Ch. 13, 2022</span>
+      </blockquote>
     </div>
     <div class="anim-step">
       <div class="key-insight">
-        <p>This <em>local support</em> property is why NURBS are ideal for shape optimization — each design variable has a bounded effect.</p>
+        <p>The best wing is one that optimizes the <em>coupled system</em> &mdash; a multidisciplinary design optimization problem.</p>
       </div>
     </div>
   </div>
   <div class="slide-visual">
     <div class="diagram-container">
-      <svg viewBox="0 0 500 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Axes -->
-        <line x1="50" y1="300" x2="460" y2="300" stroke="#334" stroke-width="2"/>
-        <line x1="50" y1="300" x2="50" y2="30" stroke="#334" stroke-width="2"/>
-        <text x="250" y="340" fill="#6b7394" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Parameter t</text>
-        <text x="20" y="170" fill="#6b7394" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" transform="rotate(-90,20,170)">N(t)</text>
-        <!-- Basis function 0 (leftmost) -->
-        <path d="M 50,300 Q 80,300 95,200 Q 110,100 130,80 Q 145,100 165,200 Q 180,300 210,300" fill="none" stroke="#00d4ff" stroke-width="2.5" opacity="0.8"/>
-        <text x="130" y="65" fill="#00d4ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">N₀</text>
-        <!-- Basis function 1 -->
+      <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Wing planform -->
+        <path d="M 100,200 L 400,160 L 430,180 L 420,200 L 400,220 L 100,200 Z" fill="rgba(0,212,255,0.08)" stroke="#00d4ff" stroke-width="2"/>
+        <!-- Aero labels -->
+        <text x="300" y="140" fill="#00d4ff" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Aerodynamic loads</text>
+        <line x1="300" y1="148" x2="300" y2="168" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+        <!-- Lift arrows -->
         <g class="anim-step">
-          <path d="M 110,300 Q 140,300 160,200 Q 180,80 210,60 Q 240,80 260,200 Q 280,300 310,300" fill="none" stroke="#ff6b35" stroke-width="2.5" opacity="0.8"/>
-          <text x="210" y="45" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">N₁</text>
+          <line x1="180" y1="220" x2="180" y2="185" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
+          <line x1="250" y1="220" x2="250" y2="180" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
+          <line x1="320" y1="218" x2="320" y2="178" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
+          <text x="250" y="240" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">Lift distribution</text>
         </g>
-        <!-- Basis function 2 -->
+        <!-- Structural deflection -->
         <g class="anim-step">
-          <path d="M 190,300 Q 220,300 240,200 Q 260,80 290,60 Q 320,80 340,200 Q 360,300 390,300" fill="none" stroke="#00e676" stroke-width="2.5" opacity="0.8"/>
-          <text x="290" y="45" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">N₂</text>
+          <path d="M 100,200 Q 250,190 430,230" fill="none" stroke="#ff6b35" stroke-width="2" stroke-dasharray="6,4"/>
+          <text x="380" y="250" fill="#ff6b35" font-size="12" font-family="Inter, sans-serif">Deflection</text>
+          <line x1="400" y1="200" x2="410" y2="225" stroke="#ff6b35" stroke-width="1.5" marker-end="url(#arrowhead-orange)"/>
         </g>
-        <!-- Basis function 3 -->
+        <!-- Tradeoff annotation -->
         <g class="anim-step">
-          <path d="M 270,300 Q 300,300 320,200 Q 340,80 370,60 Q 400,80 420,200 Q 440,300 460,300" fill="none" stroke="#b388ff" stroke-width="2.5" opacity="0.8"/>
-          <text x="370" y="45" fill="#b388ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">N₃</text>
-        </g>
-        <!-- Partition of unity line -->
-        <g class="anim-step">
-          <line x1="130" y1="80" x2="370" y2="80" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
-          <text x="250" y="75" fill="#ffd740" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Sum = 1 everywhere (partition of unity)</text>
+          <rect x="100" y="280" width="300" height="50" rx="8" fill="rgba(255,215,64,0.08)" stroke="#ffd740" stroke-width="1"/>
+          <text x="250" y="300" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Aero ↔ Structures Tradeoff</text>
+          <text x="250" y="318" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Optimal wing requires coupled analysis</text>
         </g>
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 7 — Interactive NURBS Editor
-     ============================================================ -->
-<section class="slide layout-center" id="slide-7">
+<!-- SLIDE 6 — Section Transition -->
+<section class="slide layout-center section-transition" id="slide-6">
   <div class="slide-content">
-    <h2>Try It: Drag the Control Points</h2>
-    <p class="small-text" style="color:var(--text-dim);">Drag the <span class="text-cyan">cyan points</span> to reshape the curve. Notice how each point only affects the nearby portion.</p>
-    <div class="diagram-container large" style="margin-top:16px;">
+    <h2>The design space is vast and expensive to explore.</h2>
+    <div class="anim-step">
+      <p style="font-size:clamp(22px,2.8vw,38px); color:var(--text-primary); margin-top:24px;">How do we navigate it <span class="gradient-text">efficiently</span>?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ACT 2: GRADIENT-BASED OPTIMIZATION
+     ============================================================ -->
+
+<!-- SLIDE 7 — NURBS + Interactive Editor (Consolidated) -->
+<section class="slide layout-split" id="slide-7">
+  <div class="slide-text">
+    <p class="label">Shape Parametrization</p>
+    <h2>NURBS Curves</h2>
+    <p>Design variables need a <span class="text-cyan">parametrization</span> &mdash; a way to define shapes with a finite set of numbers.</p>
+    <div class="anim-step">
+      <p><span class="text-cyan">NURBS</span> (Non-Uniform Rational B-Splines) use <span class="text-orange">control points</span> that shape the curve without touching it.</p>
+      <div class="formula" style="font-size:clamp(14px,1.5vw,22px);">C(t) = &Sigma; N<sub>i,p</sub>(t) &middot; P<sub>i</sub></div>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight">
+        <p>Each control point has <em>local</em> influence &mdash; ideal for optimization. Drag the cyan points to see!</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-visual">
+    <div class="diagram-container">
       <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" id="nurbs-interactive" style="cursor:grab; touch-action:none;">
-        <!-- Control polygon -->
         <polyline id="nurbs-ctrl-polygon" fill="none" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
-        <!-- B-spline curve -->
         <path id="nurbs-curve" fill="none" stroke="#00d4ff" stroke-width="3"/>
-        <!-- Control points will be added by JS -->
         <g id="nurbs-ctrl-points"></g>
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 8 — Section Transition
-     ============================================================ -->
-<section class="slide layout-center section-transition" id="slide-8">
-  <div class="slide-content">
-    <h2>We can describe any shape with NURBS.</h2>
-    <div class="anim-step">
-      <p style="font-size:clamp(22px,2.8vw,38px); color:var(--text-primary); margin-top:24px;">Now, how do we find the <span class="gradient-text">best</span> shape?</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SLIDE 9 — The Optimization Loop
-     ============================================================ -->
-<section class="slide layout-center" id="slide-9">
+<!-- SLIDE 8 — The Optimization Loop -->
+<section class="slide layout-center" id="slide-8">
   <div class="slide-content">
     <p class="label">Gradient-Based Optimization</p>
     <h2>The Optimization Loop</h2>
     <div class="diagram-container large" style="margin-top:20px;">
-      <svg viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg">
-        <!-- Boxes -->
-        <g>
-          <!-- Initial Design -->
-          <rect x="20" y="110" width="130" height="60" rx="8" fill="var(--bg-card)" stroke="#6b7394" stroke-width="1.5"/>
-          <text x="85" y="145" fill="var(--text-primary)" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Initial Design</text>
-        </g>
+      <svg viewBox="0 0 800 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid lines -->
+        <line x1="200" y1="20" x2="200" y2="310" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+        <line x1="550" y1="20" x2="550" y2="310" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+        <line x1="50" y1="80" x2="750" y2="80" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+        <line x1="50" y1="200" x2="750" y2="200" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+
+        <!-- Optimizer block (diagonal, row 0) -->
+        <rect x="125" y="55" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="2"/>
+        <text x="200" y="78" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimizer</text>
+        <text x="200" y="96" fill="var(--text-dim)" font-size="10" text-anchor="middle" font-family="Inter, sans-serif">x&#x2096;&#x208A;&#x2081; = x&#x2096; + &alpha; p&#x2096;</text>
+
+        <!-- Analysis block (diagonal, row 1) -->
         <g class="anim-step">
-          <!-- Evaluate -->
-          <line x1="150" y1="140" x2="195" y2="140" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="200" y="110" width="130" height="60" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
-          <text x="265" y="137" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Solve Physics</text>
-          <text x="265" y="155" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">r(u; x) = 0</text>
+          <rect x="475" y="175" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="2"/>
+          <text x="550" y="195" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Analysis</text>
+          <text x="550" y="213" fill="var(--text-dim)" font-size="10" text-anchor="middle" font-family="Inter, sans-serif">Solve r(u; x) = 0</text>
         </g>
+
+        <!-- Data: x* (Optimizer → Analysis, above diagonal) -->
         <g class="anim-step">
-          <!-- Compute gradients -->
-          <line x1="330" y1="140" x2="375" y2="140" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="380" y="110" width="130" height="60" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
-          <text x="445" y="137" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Compute</text>
-          <text x="445" y="155" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Gradients</text>
+          <polygon points="483,55 617,55 609,95 475,95" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="546" y="80" fill="#ff6b35" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500">x*</text>
+          <!-- Connecting lines -->
+          <line x1="275" y1="80" x2="475" y2="80" stroke="#6b7394" stroke-width="2"/>
+          <line x1="550" y1="95" x2="550" y2="175" stroke="#6b7394" stroke-width="2"/>
         </g>
+
+        <!-- Data: f*, g*, ∇f (Analysis → Optimizer, below diagonal) -->
         <g class="anim-step">
-          <!-- Optimizer -->
-          <line x1="510" y1="140" x2="555" y2="140" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="560" y="110" width="130" height="60" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="1.5"/>
-          <text x="625" y="137" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Update Design</text>
-          <text x="625" y="155" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">x_{k+1} = x_k + &alpha; p_k</text>
+          <polygon points="125,175 275,175 267,215 133,215" fill="var(--bg-card)" stroke="#b388ff" stroke-width="1.5"/>
+          <text x="200" y="200" fill="#b388ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500">f*, g*, &nabla;f</text>
+          <!-- Connecting lines -->
+          <line x1="475" y1="200" x2="275" y2="200" stroke="#6b7394" stroke-width="2"/>
+          <line x1="200" y1="215" x2="200" y2="105" stroke="#6b7394" stroke-width="2" marker-end="url(#arrowhead-gray)"/>
         </g>
+
+        <!-- Process flow numbers -->
         <g class="anim-step">
-          <!-- Loop arrow -->
-          <path d="M 625,170 L 625,240 L 265,240 L 265,175" fill="none" stroke="#ffd740" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowhead-yellow)"/>
-          <text x="445" y="260" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="500">Repeat until converged</text>
+          <circle cx="140" cy="275" r="14" fill="none" stroke="#ffd740" stroke-width="2"/>
+          <text x="140" y="280" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">0</text>
+          <line x1="154" y1="275" x2="476" y2="275" stroke="#ffd740" stroke-width="2" stroke-dasharray="6,4"/>
+          <circle cx="490" cy="275" r="14" fill="none" stroke="#ffd740" stroke-width="2"/>
+          <text x="490" y="280" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">1</text>
+          <text x="610" y="280" fill="var(--text-dim)" font-size="12" font-family="Inter, sans-serif">Iterate until converged</text>
         </g>
+
+        <!-- Optimal output (target parallelogram) -->
         <g class="anim-step">
-          <!-- Converged -->
-          <rect x="560" y="25" width="130" height="50" rx="8" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1.5"/>
-          <text x="625" y="55" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimal Shape</text>
-          <line x1="625" y1="110" x2="625" y2="80" stroke="#00e676" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead-green)"/>
+          <polygon points="483,5 617,5 609,45 475,45" fill="rgba(0,230,118,0.08)" stroke="#00e676" stroke-width="1.5"/>
+          <text x="546" y="30" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">x*&#x2092;&#x209A;&#x209C;</text>
+          <line x1="200" y1="55" x2="200" y2="28" stroke="#00e676" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="200" y1="28" x2="475" y2="28" stroke="#00e676" stroke-width="1.5" stroke-dasharray="4,3"/>
         </g>
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 10 — Gradient Descent
-     ============================================================ -->
-<section class="slide layout-split" id="slide-10">
+<!-- SLIDE 9 — Gradient Descent -->
+<section class="slide layout-split" id="slide-9">
   <div class="slide-text">
     <p class="label">Search Direction</p>
     <h2>Steepest Descent</h2>
@@ -366,25 +391,20 @@
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Contour plot (elliptical contours) -->
         <ellipse cx="350" cy="150" rx="30" ry="15" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="150" rx="70" ry="35" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="150" rx="120" ry="60" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="150" rx="180" ry="90" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="150" rx="250" ry="125" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="150" rx="310" ry="155" fill="none" stroke="#1a2050" stroke-width="1.5"/>
-        <!-- Optimum point -->
         <circle cx="350" cy="150" r="5" fill="#00e676"/>
         <text x="360" y="142" fill="#00e676" font-size="12" font-family="Inter, sans-serif">x*</text>
-        <!-- Starting point and gradient -->
         <circle cx="120" cy="280" r="6" fill="#ff6b35"/>
-        <text x="100" y="305" fill="#ff6b35" font-size="12" font-family="Inter, sans-serif">x₀</text>
-        <!-- Gradient arrow -->
+        <text x="100" y="305" fill="#ff6b35" font-size="12" font-family="Inter, sans-serif">x&#x2080;</text>
         <g class="anim-step">
           <line x1="120" y1="280" x2="180" y2="230" stroke="#ff6b35" stroke-width="2.5" marker-end="url(#arrowhead-orange)"/>
           <text x="165" y="220" fill="#ff6b35" font-size="11" font-family="Inter, sans-serif">-&nabla;f</text>
         </g>
-        <!-- Zigzag path -->
         <g class="anim-step">
           <polyline points="120,280 200,210 170,180 240,145 220,140 280,130 265,135 320,140 310,145 340,148" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.8"/>
           <text x="170" y="340" fill="#00d4ff" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Steepest descent zigzags!</text>
@@ -394,66 +414,62 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 11 — Interactive Gradient Descent
-     ============================================================ -->
-<section class="slide layout-center" id="slide-11">
+<!-- SLIDE 10 — Interactive Gradient Descent -->
+<section class="slide layout-center" id="slide-10">
   <div class="slide-content">
     <h2>Watch Gradient Descent Navigate</h2>
     <p class="small-text" style="color:var(--text-dim);">Click anywhere to set a starting point. Observe the <span class="text-cyan">zigzag path</span> of steepest descent on elongated contours.</p>
     <div class="diagram-container large" style="margin-top:16px;">
       <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" id="gd-interactive" style="cursor:crosshair;">
-        <!-- Contour plot rendered by JS -->
         <g id="gd-contours"></g>
-        <!-- Optimizer path -->
         <g id="gd-path"></g>
-        <!-- Start/end points -->
         <g id="gd-points"></g>
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 12 — Better Methods
-     ============================================================ -->
-<section class="slide layout-split" id="slide-12">
+<!-- SLIDE 11 — BFGS and SQP (Consolidated) -->
+<section class="slide layout-split" id="slide-11">
   <div class="slide-text">
-    <h2>Smarter Search Directions</h2>
-    <p><span class="text-pink">Steepest descent</span> ignores curvature. Better methods use it.</p>
-    <div class="anim-step">
-      <div class="card" style="margin:12px 0;">
-        <p class="label" style="color:var(--accent-orange);">Conjugate Gradient</p>
-        <p style="font-size:clamp(16px,1.6vw,22px);">Builds search directions that are <em>conjugate</em> to previous ones. Avoids revisiting the same directions.</p>
-      </div>
-    </div>
+    <h2>Smarter Optimizers</h2>
+    <p><span class="text-pink">Steepest descent</span> ignores curvature. Better methods exploit it.</p>
     <div class="anim-step">
       <div class="card" style="margin:12px 0;">
         <p class="label" style="color:var(--accent-purple);">Quasi-Newton (BFGS)</p>
-        <p style="font-size:clamp(16px,1.6vw,22px);">Approximates the Hessian (curvature matrix) from gradient history. Converges <em>superlinearly</em>.</p>
+        <p style="font-size:clamp(15px,1.5vw,21px);">Approximates the Hessian from gradient history. Converges <em>superlinearly</em>.</p>
       </div>
     </div>
     <div class="anim-step">
+      <div class="card" style="margin:12px 0;">
+        <p class="label" style="color:var(--accent-cyan);">SQP (Constrained)</p>
+        <p style="font-size:clamp(15px,1.5vw,21px);">Solves quadratic subproblems respecting linearized constraints. Handles g(x) &le; 0.</p>
+      </div>
+    </div>
+    <div class="anim-step">
+      <blockquote>
+        <p>&ldquo;BFGS is widely regarded as the most effective quasi-Newton method for general unconstrained optimization.&rdquo;</p>
+        <span class="attribution">&mdash; Nocedal &amp; Wright, <em>Numerical Optimization</em>, 2006</span>
+      </blockquote>
+    </div>
+    <div class="anim-step">
       <div class="key-insight">
-        <p>BFGS is the workhorse of gradient-based shape optimization.</p>
+        <p>BFGS and SQP (e.g., SNOPT) are the workhorses of gradient-based design optimization.</p>
       </div>
     </div>
   </div>
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Contours -->
         <ellipse cx="350" cy="200" rx="30" ry="12" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="200" rx="80" ry="32" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="200" rx="140" ry="56" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="200" rx="210" ry="84" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <ellipse cx="350" cy="200" rx="280" ry="112" fill="none" stroke="#1a2050" stroke-width="1.5"/>
         <circle cx="350" cy="200" r="5" fill="#00e676"/>
-        <!-- Steepest descent path -->
         <polyline points="80,310 160,250 130,225 210,195 195,190 260,185 250,188 310,192 300,195 335,198" fill="none" stroke="#ff4081" stroke-width="2" opacity="0.6"/>
         <circle cx="80" cy="310" r="5" fill="#ff4081"/>
         <text x="50" y="340" fill="#ff4081" font-size="12" font-family="Inter, sans-serif">Steepest Descent</text>
-        <!-- BFGS path -->
         <g class="anim-step">
           <polyline points="80,310 200,230 320,205 348,200" fill="none" stroke="#b388ff" stroke-width="2.5"/>
           <circle cx="80" cy="310" r="5" fill="#b388ff"/>
@@ -464,58 +480,11 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 13 — Constrained Optimization
-     ============================================================ -->
-<section class="slide layout-split" id="slide-13">
-  <div class="slide-text">
-    <h2>Constrained Optimization</h2>
-    <p>Real problems have <span class="text-pink">constraints</span> &mdash; stress limits, volume, lift requirements.</p>
-    <div class="anim-step">
-      <p>Sequential Quadratic Programming (<span class="text-cyan">SQP</span>) solves a sequence of quadratic subproblems, each respecting the linearized constraints.</p>
-    </div>
-    <div class="anim-step">
-      <div class="key-insight">
-        <p>At the optimum, active constraints are satisfied exactly: g(x*) = 0. Inactive constraints don't affect the solution.</p>
-      </div>
-    </div>
-  </div>
-  <div class="slide-visual">
-    <div class="diagram-container">
-      <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Contours -->
-        <ellipse cx="280" cy="180" rx="30" ry="25" fill="none" stroke="#1a2050" stroke-width="1.5"/>
-        <ellipse cx="280" cy="180" rx="70" ry="55" fill="none" stroke="#1a2050" stroke-width="1.5"/>
-        <ellipse cx="280" cy="180" rx="120" ry="95" fill="none" stroke="#1a2050" stroke-width="1.5"/>
-        <ellipse cx="280" cy="180" rx="180" ry="140" fill="none" stroke="#1a2050" stroke-width="1.5"/>
-        <!-- Constraint boundary -->
-        <path d="M 100,340 Q 200,200 320,240 Q 400,265 460,220" fill="none" stroke="#ff4081" stroke-width="2.5"/>
-        <text x="430" y="210" fill="#ff4081" font-size="13" font-family="Inter, sans-serif">g(x) = 0</text>
-        <!-- Feasible region label -->
-        <g class="anim-step">
-          <text x="300" y="320" fill="#ff4081" font-size="12" font-family="Inter, sans-serif" opacity="0.6">Infeasible</text>
-          <text x="200" y="160" fill="#00e676" font-size="12" font-family="Inter, sans-serif" opacity="0.6">Feasible</text>
-        </g>
-        <!-- Constrained optimum (on boundary) -->
-        <g class="anim-step">
-          <circle cx="250" cy="235" r="7" fill="#ffd740" stroke="#ffd740" stroke-width="2"/>
-          <text x="210" y="260" fill="#ffd740" font-size="13" font-family="Inter, sans-serif" font-weight="600">x* (constrained)</text>
-          <!-- Unconstrained optimum -->
-          <circle cx="280" cy="180" r="5" fill="#6b7394" opacity="0.5"/>
-          <text x="290" y="175" fill="#6b7394" font-size="11" font-family="Inter, sans-serif">unconstrained</text>
-        </g>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SLIDE 14 — All Methods Need Gradients
-     ============================================================ -->
-<section class="slide layout-center" id="slide-14">
+<!-- SLIDE 12 — All Methods Need Gradients -->
+<section class="slide layout-center" id="slide-12">
   <div class="slide-content">
     <h2>Every Method Needs Gradients</h2>
-    <p>Steepest descent, conjugate gradient, BFGS, SQP &mdash; they all require:</p>
+    <p>Steepest descent, BFGS, SQP &mdash; they all require:</p>
     <div class="anim-step">
       <div class="formula" style="font-size:clamp(22px,2.8vw,40px);">
         <span style="color:var(--accent-orange);">&nabla;f</span> = <span style="color:var(--text-secondary);">[</span>
@@ -527,7 +496,7 @@
       </div>
     </div>
     <div class="anim-step">
-      <p>In shape optimization, <code>n</code> can be <span class="text-pink">hundreds or thousands</span> of design variables.</p>
+      <p>In design optimization, <code>n</code> can be <span class="text-pink">hundreds or thousands</span> of design variables.</p>
     </div>
     <div class="anim-step">
       <p style="color:var(--text-primary); font-size:clamp(22px,2.8vw,38px); font-weight:600; margin-top:20px;">How do we compute these gradients efficiently?</p>
@@ -535,10 +504,8 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 15 — Section Transition
-     ============================================================ -->
-<section class="slide layout-center section-transition" id="slide-15">
+<!-- SLIDE 13 — Section Transition -->
+<section class="slide layout-center section-transition" id="slide-13">
   <div class="slide-content">
     <h2>The optimizer knows <em>how</em> to navigate.</h2>
     <div class="anim-step">
@@ -551,9 +518,11 @@
 </section>
 
 <!-- ============================================================
-     SLIDE 16 — Finite Differences
+     ACT 3: COMPUTING DERIVATIVES — The Unified Framework
      ============================================================ -->
-<section class="slide layout-split" id="slide-16">
+
+<!-- SLIDE 14 — Finite Differences -->
+<section class="slide layout-split" id="slide-14">
   <div class="slide-text">
     <p class="label">Method 1</p>
     <h2>Finite Differences</h2>
@@ -570,38 +539,40 @@
       <div class="highlight-box pink">
         <p style="margin:0;">500 design variables = <span class="text-pink">501 physics solves</span></p>
       </div>
+      <p class="citation">[Martins &amp; Ning, Ch. 6, 2022]</p>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight">
+        <p>Finite differences are useful for <em>verifying</em> analytic gradients, but too expensive for production optimization.</p>
+      </div>
     </div>
   </div>
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg">
-        <!-- Shape with control points -->
         <path d="M 60,250 C 120,200 180,160 250,140 C 320,120 380,140 440,200" fill="none" stroke="#6b7394" stroke-width="2"/>
-        <!-- Control points -->
         <circle cx="100" cy="230" r="6" fill="#6b7394"/>
         <circle cx="170" cy="180" r="6" fill="#6b7394"/>
         <circle cx="250" cy="140" r="6" fill="#6b7394"/>
         <circle cx="330" cy="140" r="6" fill="#6b7394"/>
         <circle cx="410" cy="185" r="6" fill="#6b7394"/>
-        <!-- Perturb one at a time -->
         <g class="anim-step">
           <circle cx="100" cy="215" r="7" fill="#ff6b35" opacity="0.8"/>
           <line x1="100" y1="230" x2="100" y2="218" stroke="#ff6b35" stroke-width="2" marker-end="url(#arrowhead-orange)"/>
           <text x="75" y="205" fill="#ff6b35" font-size="11" font-family="Inter, sans-serif">+h</text>
-          <text x="180" y="60" fill="#ff6b35" font-size="14" font-family="Inter, sans-serif">Perturb x₁ → Solve → Evaluate f</text>
+          <text x="180" y="60" fill="#ff6b35" font-size="14" font-family="Inter, sans-serif">Perturb x&#x2081; &rarr; Solve &rarr; Evaluate f</text>
         </g>
         <g class="anim-step">
           <circle cx="170" cy="165" r="7" fill="#ff6b35" opacity="0.8"/>
           <line x1="170" y1="180" x2="170" y2="168" stroke="#ff6b35" stroke-width="2" marker-end="url(#arrowhead-orange)"/>
           <text x="145" y="155" fill="#ff6b35" font-size="11" font-family="Inter, sans-serif">+h</text>
-          <text x="180" y="80" fill="#ff6b35" font-size="14" font-family="Inter, sans-serif">Perturb x₂ → Solve → Evaluate f</text>
+          <text x="180" y="80" fill="#ff6b35" font-size="14" font-family="Inter, sans-serif">Perturb x&#x2082; &rarr; Solve &rarr; Evaluate f</text>
         </g>
         <g class="anim-step">
           <circle cx="250" cy="125" r="7" fill="#ff6b35" opacity="0.8"/>
-          <text x="180" y="100" fill="#ff6b35" font-size="14" font-family="Inter, sans-serif">Perturb x₃ → Solve → Evaluate f</text>
+          <text x="180" y="100" fill="#ff6b35" font-size="14" font-family="Inter, sans-serif">Perturb x&#x2083; &rarr; Solve &rarr; Evaluate f</text>
           <text x="180" y="120" fill="#ff4081" font-size="13" font-family="Inter, sans-serif">... repeat for ALL n variables</text>
         </g>
-        <!-- Cost label -->
         <g class="anim-step">
           <rect x="120" y="290" rx="8" width="260" height="50" fill="rgba(255,64,129,0.1)" stroke="#ff4081" stroke-width="1.5"/>
           <text x="250" y="320" fill="#ff4081" font-size="15" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Cost = (n_x + 1) &times; Solve Cost</text>
@@ -611,47 +582,38 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 17 — The Implicit Model
-     ============================================================ -->
-<section class="slide layout-split" id="slide-17">
+<!-- SLIDE 15 — The Physics Model -->
+<section class="slide layout-split" id="slide-15">
   <div class="slide-text">
     <p class="label">The Physics</p>
     <h2>The Implicit Model</h2>
     <p>Engineering analysis involves solving <span class="text-cyan">governing equations</span>:</p>
     <div class="anim-step">
       <div class="formula">r(u; x) = 0</div>
-      <p class="small-text"><b>x</b> = design variables (control points)<br><b>u</b> = state variables (pressure, velocity, displacement)<br><b>r</b> = residual equations (conservation laws, equilibrium)</p>
+      <p class="small-text"><b>x</b> = design variables (shape, thickness, angle)<br><b>u</b> = state variables (pressure, velocity, displacement)<br><b>r</b> = residual equations (Navier&ndash;Stokes, structural equilibrium)</p>
     </div>
     <div class="anim-step">
-      <p>The objective f(<b>x</b>, <b>u</b>) depends on <b>x</b> both directly <em>and</em> through <b>u</b>.</p>
+      <p>For a wing: <b>x</b> = airfoil shape + skin thickness, <b>u</b> = flow field + structural deflection, <b>f</b> = drag or fuel burn.</p>
     </div>
   </div>
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- x input -->
         <rect x="40" y="140" width="80" height="50" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
         <text x="80" y="170" fill="#00d4ff" font-size="16" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">x</text>
         <text x="80" y="210" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Design Vars</text>
-        <!-- Solver box -->
         <g class="anim-step">
           <rect x="190" y="100" width="130" height="80" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
           <text x="255" y="135" fill="#ff6b35" font-size="14" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Solver</text>
           <text x="255" y="158" fill="var(--text-dim)" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">r(u; x) = 0</text>
-          <!-- Arrow from x to Solver -->
           <line x1="120" y1="155" x2="185" y2="140" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <!-- u output from solver -->
           <line x1="255" y1="180" x2="255" y2="220" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
           <text x="270" y="212" fill="#b388ff" font-size="14" font-family="Inter, sans-serif" font-weight="600">u</text>
         </g>
-        <!-- f box -->
         <g class="anim-step">
           <rect x="350" y="230" width="100" height="50" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="1.5"/>
           <text x="400" y="260" fill="#00e676" font-size="16" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">f(x, u)</text>
-          <!-- Arrow from u to f -->
           <line x1="280" y1="245" x2="345" y2="250" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <!-- Arrow from x to f (direct dependence) -->
           <path d="M 100,190 L 100,255 L 345,255" fill="none" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-cyan)"/>
           <text x="200" y="275" fill="#00d4ff" font-size="11" font-family="Inter, sans-serif">direct path</text>
           <text x="310" y="225" fill="#b388ff" font-size="11" font-family="Inter, sans-serif">through solver</text>
@@ -661,10 +623,8 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 18 — Total Derivative
-     ============================================================ -->
-<section class="slide layout-center" id="slide-18">
+<!-- SLIDE 16 — Total Derivative via Chain Rule -->
+<section class="slide layout-center" id="slide-16">
   <div class="slide-content">
     <h2>Total Derivative via Chain Rule</h2>
     <p>Because f depends on x both directly and through u:</p>
@@ -697,10 +657,8 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 19 — The Linear System
-     ============================================================ -->
-<section class="slide layout-center" id="slide-19">
+<!-- SLIDE 17 — The Linear System -->
+<section class="slide layout-center" id="slide-17">
   <div class="slide-content">
     <h2>Differentiating the Governing Equations</h2>
     <p>Since r(u; x) = 0 must hold, differentiating with respect to x gives:</p>
@@ -729,10 +687,8 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 20 — Direct Method
-     ============================================================ -->
-<section class="slide layout-split" id="slide-20">
+<!-- SLIDE 18 — The Direct Method -->
+<section class="slide layout-split" id="slide-18">
   <div class="slide-text">
     <p class="label">Forward Mode</p>
     <h2>The Direct Method</h2>
@@ -759,30 +715,23 @@
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Matrix diagram -->
-        <!-- ∂r/∂u (square) -->
         <rect x="50" y="80" width="120" height="120" rx="4" fill="none" stroke="#b388ff" stroke-width="2"/>
         <text x="110" y="145" fill="#b388ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">&part;r/&part;u</text>
         <text x="110" y="220" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(n_u &times; n_u)</text>
-        <!-- phi (tall matrix) -->
         <g class="anim-step">
           <rect x="200" y="80" width="100" height="120" rx="4" fill="none" stroke="#ff6b35" stroke-width="2"/>
           <text x="250" y="145" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">&phi;</text>
           <text x="250" y="220" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(n_u &times; n_x)</text>
         </g>
-        <!-- = sign -->
         <g class="anim-step">
           <text x="325" y="145" fill="var(--text-primary)" font-size="24" text-anchor="middle" font-family="Inter, sans-serif">=</text>
         </g>
-        <!-- ∂r/∂x (tall matrix) -->
         <g class="anim-step">
           <rect x="350" y="80" width="100" height="120" rx="4" fill="none" stroke="#00d4ff" stroke-width="2"/>
           <text x="400" y="145" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">&part;r/&part;x</text>
           <text x="400" y="220" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(n_u &times; n_x)</text>
         </g>
-        <!-- Highlight: solve nx times -->
         <g class="anim-step">
-          <!-- Column highlights -->
           <rect x="205" y="82" width="15" height="116" rx="2" fill="#ff6b35" opacity="0.3"/>
           <rect x="222" y="82" width="15" height="116" rx="2" fill="#ff6b35" opacity="0.2"/>
           <rect x="239" y="82" width="15" height="116" rx="2" fill="#ff6b35" opacity="0.15"/>
@@ -795,10 +744,8 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 21 — The Adjoint Method
-     ============================================================ -->
-<section class="slide layout-split" id="slide-21">
+<!-- SLIDE 19 — The Adjoint Method -->
+<section class="slide layout-split" id="slide-19">
   <div class="slide-text">
     <p class="label" style="color:var(--accent-purple);">The Key Insight</p>
     <h2>The Adjoint Method</h2>
@@ -821,74 +768,68 @@
         <span class="small-text">For 1 objective = <b>1 solve</b> (regardless of number of design variables!)</span></p>
       </div>
     </div>
+    <div class="anim-step">
+      <blockquote style="font-size:clamp(13px,1.3vw,18px);">
+        <p>&ldquo;The adjoint approach was first applied to shape optimization by Pironneau (1974) and brought to computational aerodynamics by Jameson (1988).&rdquo;</p>
+        <span class="attribution">&mdash; Martins &amp; Ning, 2022</span>
+      </blockquote>
+    </div>
   </div>
   <div class="slide-visual">
     <div class="diagram-container">
       <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Transposed matrix diagram -->
-        <!-- (∂r/∂u)^T (square) -->
         <rect x="50" y="80" width="120" height="120" rx="4" fill="none" stroke="#b388ff" stroke-width="2"/>
-        <text x="110" y="140" fill="#b388ff" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">(&part;r/&part;u)<tspan baseline-shift="super" font-size="10">T</tspan></text>
+        <text x="110" y="140" fill="#b388ff" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">(&part;r/&part;u)&#7488;</text>
         <text x="110" y="220" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(n_u &times; n_u)</text>
-        <!-- psi (short and wide matrix → narrow!) -->
         <g class="anim-step">
           <rect x="200" y="80" width="40" height="120" rx="4" fill="none" stroke="#b388ff" stroke-width="2"/>
           <text x="220" y="145" fill="#b388ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">&psi;</text>
           <text x="220" y="220" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(n_u &times; n_f)</text>
         </g>
-        <!-- = sign -->
         <g class="anim-step">
           <text x="275" y="145" fill="var(--text-primary)" font-size="24" text-anchor="middle" font-family="Inter, sans-serif">=</text>
         </g>
-        <!-- (∂f/∂u)^T (narrow matrix) -->
         <g class="anim-step">
           <rect x="310" y="80" width="40" height="120" rx="4" fill="none" stroke="#00e676" stroke-width="2"/>
-          <text x="330" y="140" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">(&part;f/&part;u)<tspan baseline-shift="super" font-size="10">T</tspan></text>
+          <text x="330" y="140" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">(&part;f/&part;u)&#7488;</text>
           <text x="330" y="220" fill="#6b7394" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(n_u &times; n_f)</text>
         </g>
-        <!-- Highlight: only nf solves! -->
         <g class="anim-step">
           <rect x="205" y="82" width="30" height="116" rx="2" fill="#b388ff" opacity="0.25"/>
           <text x="280" y="260" fill="#00e676" font-size="14" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Only n_f columns to solve!</text>
-          <text x="280" y="280" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">(typically 1-5)</text>
+          <text x="280" y="280" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">(typically 1&ndash;5)</text>
         </g>
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 22 — Adjoint Gives All Gradients
-     ============================================================ -->
-<section class="slide layout-center" id="slide-22">
+<!-- SLIDE 20 — One Solve → All Gradients -->
+<section class="slide layout-center" id="slide-20">
   <div class="slide-content">
     <h2>One Solve &rarr; All Gradients</h2>
     <div class="diagram-container large" style="margin-top:16px;">
       <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Adjoint solve (center) -->
         <rect x="300" y="40" width="200" height="70" rx="10" fill="var(--bg-card)" stroke="#b388ff" stroke-width="2"/>
         <text x="400" y="70" fill="#b388ff" font-size="16" text-anchor="middle" font-weight="700" font-family="Inter, sans-serif">1 Adjoint Solve</text>
         <text x="400" y="92" fill="var(--text-dim)" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">(&part;r/&part;u)&#7488;&psi; = (&part;f/&part;u)&#7488;</text>
-        <!-- Fan out arrows to all derivatives -->
         <g class="anim-step">
           <line x1="330" y1="110" x2="100" y2="180" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
           <line x1="360" y1="110" x2="240" y2="180" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
           <line x1="400" y1="110" x2="400" y2="180" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
           <line x1="440" y1="110" x2="560" y2="180" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
           <line x1="470" y1="110" x2="700" y2="180" stroke="#00e676" stroke-width="1.5" marker-end="url(#arrowhead-green)"/>
-          <!-- Derivative boxes -->
           <rect x="55" y="185" width="90" height="45" rx="6" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
-          <text x="100" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx₁</text>
+          <text x="100" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx&#x2081;</text>
           <rect x="195" y="185" width="90" height="45" rx="6" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
-          <text x="240" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx₂</text>
+          <text x="240" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx&#x2082;</text>
           <rect x="355" y="185" width="90" height="45" rx="6" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
-          <text x="400" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx₃</text>
+          <text x="400" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx&#x2083;</text>
           <rect x="515" y="185" width="90" height="45" rx="6" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
           <text x="560" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">...</text>
           <rect x="655" y="185" width="90" height="45" rx="6" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
           <text x="700" y="212" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">df/dx_n</text>
         </g>
-        <!-- Comparison -->
         <g class="anim-step">
           <text x="400" y="280" fill="var(--text-primary)" font-size="16" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">All n derivatives from a single solve!</text>
           <text x="400" y="305" fill="var(--text-dim)" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">Finite differences would need n+1 solves for the same result</text>
@@ -898,10 +839,8 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 23 — Interactive Cost Comparison
-     ============================================================ -->
-<section class="slide layout-center" id="slide-23">
+<!-- SLIDE 21 — Interactive Cost Comparison -->
+<section class="slide layout-center" id="slide-21">
   <div class="slide-content">
     <h2>Cost Comparison: Direct vs. Adjoint</h2>
     <p class="small-text" style="color:var(--text-dim);">Use the slider to change the number of design variables and see how costs scale.</p>
@@ -912,21 +851,16 @@
     </div>
     <div class="diagram-container large" style="margin-top:8px;">
       <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" id="cost-comparison-svg">
-        <!-- Axis -->
         <line x1="100" y1="280" x2="700" y2="280" stroke="#334" stroke-width="2"/>
         <line x1="100" y1="280" x2="100" y2="30" stroke="#334" stroke-width="2"/>
         <text x="400" y="320" fill="#6b7394" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">Method</text>
         <text x="50" y="155" fill="#6b7394" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" transform="rotate(-90,50,155)">Number of Linear Solves</text>
-        <!-- Bars will be updated by JS -->
-        <!-- Finite Differences bar -->
         <rect id="cost-bar-fd" x="160" y="40" width="100" height="240" rx="4" fill="#ff4081" opacity="0.8"/>
         <text id="cost-label-fd" x="210" y="35" fill="#ff4081" font-size="14" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">101</text>
         <text x="210" y="300" fill="var(--text-secondary)" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Finite Diff</text>
-        <!-- Direct bar -->
         <rect id="cost-bar-direct" x="340" y="40" width="100" height="240" rx="4" fill="#ff6b35" opacity="0.8"/>
         <text id="cost-label-direct" x="390" y="35" fill="#ff6b35" font-size="14" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">100</text>
         <text x="390" y="300" fill="var(--text-secondary)" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Direct</text>
-        <!-- Adjoint bar -->
         <rect id="cost-bar-adjoint" x="520" y="270" width="100" height="10" rx="4" fill="#00e676" opacity="0.8"/>
         <text id="cost-label-adjoint" x="570" y="265" fill="#00e676" font-size="14" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">1</text>
         <text x="570" y="300" fill="var(--text-secondary)" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Adjoint</text>
@@ -935,260 +869,812 @@
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 24 — Why Adjoint for Shape Optimization
-     ============================================================ -->
-<section class="slide layout-center" id="slide-24">
+<!-- SLIDE 22 — Algorithmic Differentiation (NEW) -->
+<section class="slide layout-center" id="slide-22">
   <div class="slide-content">
-    <h2>Why Adjoint for Shape Optimization?</h2>
+    <h2>Algorithmic Differentiation</h2>
+    <p>Instead of deriving adjoint equations by hand, <span class="text-cyan">AD</span> differentiates the <em>code</em> itself.</p>
     <div class="anim-step">
-      <div class="two-col" style="max-width:800px; margin:20px auto;">
-        <div class="card">
-          <p class="big-number text-cyan" style="font-size:clamp(36px,5vw,72px);">500+</p>
-          <p style="font-size:clamp(16px,1.8vw,24px);">Design variables<br><span class="small-text">(NURBS control point coordinates)</span></p>
+      <div class="two-col" style="max-width:800px; margin:16px auto;">
+        <div class="card" style="border-top:3px solid var(--accent-orange);">
+          <p class="label" style="color:var(--accent-orange);">Forward Mode (Tangent)</p>
+          <p style="font-size:clamp(14px,1.4vw,20px);">Propagates derivatives <em>with</em> the computation. Cost &prop; n<sub>x</sub>.</p>
+          <p style="font-size:clamp(13px,1.2vw,18px); color:var(--text-dim);">Analogous to the direct method.</p>
         </div>
-        <div class="card">
-          <p class="big-number text-green" style="font-size:clamp(36px,5vw,72px);">1-5</p>
-          <p style="font-size:clamp(16px,1.8vw,24px);">Functions of interest<br><span class="small-text">(drag + lift + volume constraints)</span></p>
+        <div class="card" style="border-top:3px solid var(--accent-purple);">
+          <p class="label" style="color:var(--accent-purple);">Reverse Mode (Adjoint)</p>
+          <p style="font-size:clamp(14px,1.4vw,20px);">Propagates derivatives <em>backward</em>. Cost &prop; n<sub>f</sub>.</p>
+          <p style="font-size:clamp(13px,1.2vw,18px); color:var(--text-dim);">Analogous to the adjoint method &mdash; and to backpropagation!</p>
         </div>
       </div>
     </div>
     <div class="anim-step">
-      <div class="key-insight" style="max-width:700px; margin:20px auto;">
-        <p>Since n<sub>x</sub> &gt;&gt; n<sub>f</sub>, the adjoint method is <span class="text-green">orders of magnitude cheaper</span> than finite differences or the direct method.</p>
+      <div class="diagram-container" style="max-width:700px;">
+        <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg">
+          <!-- Computational graph -->
+          <circle cx="80" cy="90" r="28" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="80" y="95" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">x</text>
+          <line x1="108" y1="90" x2="172" y2="90" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
+          <circle cx="210" cy="90" r="28" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="210" y="95" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">g&#x2081;</text>
+          <line x1="238" y1="90" x2="302" y2="90" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
+          <circle cx="340" cy="90" r="28" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="340" y="95" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">g&#x2082;</text>
+          <line x1="368" y1="90" x2="432" y2="90" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
+          <text x="400" y="80" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">...</text>
+          <circle cx="480" cy="90" r="28" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="480" y="95" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">g_k</text>
+          <line x1="508" y1="90" x2="572" y2="90" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
+          <circle cx="610" cy="90" r="28" fill="var(--bg-card)" stroke="#00e676" stroke-width="1.5"/>
+          <text x="610" y="95" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">f</text>
+          <!-- Forward arrow -->
+          <line x1="100" y1="35" x2="590" y2="35" stroke="#ff6b35" stroke-width="1.5" marker-end="url(#arrowhead-orange)"/>
+          <text x="345" y="28" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">Forward mode: propagate &#x1E8B; &rarr;</text>
+          <!-- Reverse arrow -->
+          <line x1="590" y1="150" x2="100" y2="150" stroke="#b388ff" stroke-width="1.5" marker-end="url(#arrowhead-purple)"/>
+          <text x="345" y="168" fill="#b388ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">&larr; Reverse mode: propagate f&#x0304;</text>
+        </svg>
       </div>
     </div>
     <div class="anim-step">
-      <blockquote style="max-width:700px; margin:16px auto;">
-        <p>"One widespread application of the adjoint method has been in aerodynamic and hydrodynamic shape optimization."</p>
-        <span class="attribution">Martins &amp; Ning, <em>Engineering Design Optimization</em>, 2022</span>
+      <div class="key-insight" style="max-width:700px; margin:12px auto;">
+        <p>Reverse-mode AD is the same algorithm as <span class="text-purple">backpropagation</span> in deep learning &mdash; applied to physics simulations.</p>
+      </div>
+      <p class="citation">[Griewank &amp; Walther, <em>Evaluating Derivatives</em>, 2008]</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 23 — Unified Derivative Equations (NEW) -->
+<section class="slide layout-center" id="slide-23">
+  <div class="slide-content">
+    <h2>Unified Derivative Equations</h2>
+    <p>All derivative methods are special cases of <span class="text-cyan">one framework</span>.</p>
+    <div class="anim-step" style="max-width:800px; margin:16px auto;">
+      <table class="slide-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Seed</th>
+            <th>Solves</th>
+            <th>Best When</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--accent-pink);">Finite Differences</td>
+            <td>e&#x1D62;</td>
+            <td>n<sub>x</sub> + 1</td>
+            <td>Verification</td>
+          </tr>
+          <tr>
+            <td style="color:var(--accent-orange);">Direct / Forward AD</td>
+            <td>e&#x1D62;</td>
+            <td>n<sub>x</sub></td>
+            <td>n<sub>x</sub> &lt; n<sub>f</sub></td>
+          </tr>
+          <tr>
+            <td style="color:var(--accent-purple);">Adjoint / Reverse AD</td>
+            <td>e&#x2C7C;</td>
+            <td>n<sub>f</sub></td>
+            <td>n<sub>f</sub> &lt; n<sub>x</sub></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="anim-step">
+      <blockquote style="max-width:700px; margin:12px auto;">
+        <p>&ldquo;The unified derivatives equations provide a single mathematical framework that encompasses finite differences, the direct method, the adjoint method, and algorithmic differentiation.&rdquo;</p>
+        <span class="attribution">&mdash; Martins &amp; Hwang, AIAA Journal, 2013</span>
       </blockquote>
     </div>
+    <div class="anim-step">
+      <div class="key-insight" style="max-width:700px; margin:12px auto;">
+        <p>For design optimization (n<sub>x</sub> &gt;&gt; n<sub>f</sub>), the adjoint/reverse mode is always the right choice.</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 25 — Section Transition
-     ============================================================ -->
-<section class="slide layout-center section-transition" id="slide-25">
+<!-- SLIDE 24 — Section Transition -->
+<section class="slide layout-center section-transition" id="slide-24">
   <div class="slide-content">
-    <h2>The adjoint method makes shape optimization <span class="gradient-text">computationally feasible</span>.</h2>
+    <h2>We can efficiently compute gradients for <span class="gradient-text">any single discipline</span>.</h2>
     <div class="anim-step">
-      <p style="font-size:clamp(20px,2.4vw,34px); color:var(--text-secondary); margin-top:24px;">Now let's put it all together.</p>
+      <p style="font-size:clamp(22px,2.8vw,38px); color:var(--text-primary); margin-top:24px;">But real problems have <span class="text-orange">coupled disciplines</span>.</p>
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     SLIDE 26 — The Complete Workflow
+     ACT 4: MULTIDISCIPLINARY DESIGN OPTIMIZATION
      ============================================================ -->
+
+<!-- SLIDE 25 — What is MDO? (NEW) -->
+<section class="slide layout-split" id="slide-25">
+  <div class="slide-text">
+    <p class="label">Beyond Single Disciplines</p>
+    <h2>Multidisciplinary Design Optimization</h2>
+    <p><span class="text-cyan">MDO</span> optimizes systems where multiple disciplines interact &mdash; finding designs that no single-discipline approach could.</p>
+    <div class="anim-step">
+      <blockquote>
+        <p>&ldquo;MDO is a field of research that studies the application of numerical optimization techniques to the design of engineering systems involving multiple interacting disciplines.&rdquo;</p>
+        <span class="attribution">&mdash; Martins &amp; Lambe, Struct. Multidisc. Optim., 2013</span>
+      </blockquote>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight">
+        <p>Optimizing the <em>system</em> yields better results than optimizing each discipline separately and compromising.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-visual">
+    <div class="diagram-container">
+      <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Venn diagram: 3 overlapping circles -->
+        <circle cx="220" cy="170" r="110" fill="rgba(0,212,255,0.1)" stroke="#00d4ff" stroke-width="2"/>
+        <text x="170" y="120" fill="#00d4ff" font-size="15" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Aero</text>
+        <circle cx="310" cy="170" r="110" fill="rgba(255,107,53,0.1)" stroke="#ff6b35" stroke-width="2"/>
+        <text x="360" y="120" fill="#ff6b35" font-size="15" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Structures</text>
+        <g class="anim-step">
+          <circle cx="265" cy="260" r="110" fill="rgba(179,136,255,0.1)" stroke="#b388ff" stroke-width="2"/>
+          <text x="265" y="340" fill="#b388ff" font-size="15" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Controls</text>
+        </g>
+        <!-- Center intersection -->
+        <g class="anim-step">
+          <circle cx="265" cy="195" r="20" fill="rgba(0,230,118,0.3)" stroke="#00e676" stroke-width="2"/>
+          <text x="265" y="200" fill="#00e676" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">MDO</text>
+          <text x="265" y="395" fill="var(--text-dim)" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">Optimal design lives at the intersection</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 26 — XDSM: Reading the Diagram (NEW) -->
 <section class="slide layout-center" id="slide-26">
   <div class="slide-content">
-    <p class="label">The Full Pipeline</p>
-    <h2>Shape Optimization Workflow</h2>
+    <h2>XDSM: Extended Design Structure Matrix</h2>
+    <p>A visual language for describing MDO processes.</p>
     <div class="diagram-container large" style="margin-top:16px;">
-      <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-        <!-- Row 1: Design parametrization -->
-        <rect x="20" y="30" width="150" height="55" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
-        <text x="95" y="52" fill="#00d4ff" font-size="13" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">NURBS</text>
-        <text x="95" y="70" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Control Points</text>
+      <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- Legend items -->
+        <!-- Optimizer -->
+        <rect x="40" y="30" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="2"/>
+        <text x="115" y="60" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimizer</text>
+        <text x="250" y="60" fill="var(--text-dim)" font-size="13" font-family="Inter, sans-serif">Optimization algorithm (e.g., SNOPT)</text>
+
+        <!-- Analysis -->
         <g class="anim-step">
-          <line x1="170" y1="57" x2="210" y2="57" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="215" y="30" width="150" height="55" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
-          <text x="290" y="52" fill="#ff6b35" font-size="13" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Generate Mesh</text>
-          <text x="290" y="70" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Surface + Volume</text>
+          <rect x="40" y="110" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="2"/>
+          <text x="115" y="140" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Analysis</text>
+          <text x="250" y="140" fill="var(--text-dim)" font-size="13" font-family="Inter, sans-serif">Discipline solver (e.g., CFD, FEA)</text>
         </g>
+
+        <!-- Data (parallelogram) -->
         <g class="anim-step">
-          <line x1="365" y1="57" x2="405" y2="57" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="410" y="30" width="150" height="55" rx="8" fill="var(--bg-card)" stroke="#b388ff" stroke-width="1.5"/>
-          <text x="485" y="52" fill="#b388ff" font-size="13" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Solve Physics</text>
-          <text x="485" y="70" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">r(u; x) = 0</text>
+          <polygon points="48,210 182,210 174,250 40,250" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="112" y="235" fill="#ff6b35" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">x*, y*</text>
+          <text x="250" y="235" fill="var(--text-dim)" font-size="13" font-family="Inter, sans-serif">Data dependency (variables passed)</text>
         </g>
+
+        <!-- Process flow -->
         <g class="anim-step">
-          <line x1="560" y1="57" x2="600" y2="57" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="605" y="30" width="170" height="55" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="1.5"/>
-          <text x="690" y="52" fill="#00e676" font-size="13" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Evaluate Objective</text>
-          <text x="690" y="70" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">f(x, u)</text>
-        </g>
-        <!-- Row 2: Adjoint + Optimization -->
-        <g class="anim-step">
-          <line x1="690" y1="85" x2="690" y2="140" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="605" y="145" width="170" height="55" rx="8" fill="var(--bg-card)" stroke="#b388ff" stroke-width="2"/>
-          <text x="690" y="167" fill="#b388ff" font-size="13" text-anchor="middle" font-weight="700" font-family="Inter, sans-serif">Adjoint Solve</text>
-          <text x="690" y="185" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">(&part;r/&part;u)&#7488;&psi; = (&part;f/&part;u)&#7488;</text>
-        </g>
-        <g class="anim-step">
-          <line x1="605" y1="172" x2="565" y2="172" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="390" y="145" width="170" height="55" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
-          <text x="475" y="167" fill="#ff6b35" font-size="13" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Compute Gradient</text>
-          <text x="475" y="185" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">df/dx = &part;f/&part;x &minus; &psi;&#7488;(&part;r/&part;x)</text>
-        </g>
-        <g class="anim-step">
-          <line x1="390" y1="172" x2="350" y2="172" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
-          <rect x="170" y="145" width="175" height="55" rx="8" fill="var(--bg-card)" stroke="#ffd740" stroke-width="1.5"/>
-          <text x="257" y="167" fill="#ffd740" font-size="13" text-anchor="middle" font-weight="600" font-family="Inter, sans-serif">Optimizer (BFGS/SQP)</text>
-          <text x="257" y="185" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">x_{k+1} = x_k + &alpha; p_k</text>
-        </g>
-        <!-- Loop back arrow -->
-        <g class="anim-step">
-          <path d="M 170,172 L 95,172 L 95,90" fill="none" stroke="#ffd740" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowhead-yellow)"/>
-          <text x="60" y="135" fill="#ffd740" font-size="12" font-family="Inter, sans-serif" transform="rotate(-90,60,135)">Update Shape</text>
-        </g>
-        <!-- Converged -->
-        <g class="anim-step">
-          <rect x="250" y="260" rx="10" width="300" height="60" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="2"/>
-          <text x="400" y="295" fill="#00e676" font-size="18" text-anchor="middle" font-weight="700" font-family="Inter, sans-serif">Optimal Shape</text>
-          <line x1="257" y1="200" x2="350" y2="260" stroke="#00e676" stroke-width="1.5" stroke-dasharray="4,3"/>
-          <text x="400" y="345" fill="var(--text-dim)" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Converges in ~20-50 optimization iterations</text>
+          <circle cx="75" cy="280" r="14" fill="none" stroke="#6b7394" stroke-width="2"/>
+          <text x="75" y="285" fill="var(--text-primary)" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">0</text>
+          <line x1="89" y1="280" x2="140" y2="280" stroke="#6b7394" stroke-width="2"/>
+          <circle cx="155" cy="280" r="14" fill="none" stroke="#6b7394" stroke-width="2"/>
+          <text x="155" y="285" fill="var(--text-primary)" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">1</text>
+          <text x="250" y="285" fill="var(--text-dim)" font-size="13" font-family="Inter, sans-serif">Numbered process flow (execution order)</text>
+          <p class="citation">[Lambe &amp; Martins, Struct. Multidisc. Optim., 2012]</p>
         </g>
       </svg>
     </div>
+    <p class="citation">[Lambe &amp; Martins, 2012]</p>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 27 — Shape Optimization in Action
-     ============================================================ -->
+<!-- SLIDE 27 — XDSM: Single-Discipline (NEW) -->
 <section class="slide layout-center" id="slide-27">
   <div class="slide-content">
-    <h2>Shape Optimization in Action</h2>
-    <p>Watch an airfoil evolve from a blunt initial shape to an aerodynamically optimized profile.</p>
+    <h2>XDSM: Single-Discipline Optimization</h2>
+    <p class="small-text" style="color:var(--text-dim);">The simplest case: one optimizer, one analysis.</p>
     <div class="diagram-container large" style="margin-top:16px;">
-      <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" id="opt-animation-svg">
-        <!-- Initial airfoil (thick, symmetric) -->
-        <g id="opt-initial">
-          <text x="400" y="30" fill="var(--text-dim)" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">Initial Design</text>
-          <path d="M 100,180 C 200,100 400,80 600,120 C 700,140 700,220 600,240 C 400,280 200,260 100,180 Z" fill="rgba(255,64,129,0.15)" stroke="#ff4081" stroke-width="2"/>
-          <!-- Control points -->
-          <circle cx="100" cy="180" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="200" cy="120" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="350" cy="90" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="500" cy="105" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="650" cy="140" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="650" cy="220" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="500" cy="260" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="350" cy="270" r="5" fill="#00d4ff" opacity="0.6"/>
-          <circle cx="200" cy="240" r="5" fill="#00d4ff" opacity="0.6"/>
-        </g>
-        <!-- Intermediate shapes -->
-        <g id="opt-mid" class="anim-step">
-          <path d="M 100,180 C 200,110 400,85 620,140 C 710,165 700,200 620,215 C 400,255 200,245 100,180 Z" fill="none" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
-        </g>
-        <!-- Optimized airfoil (thin, cambered) -->
-        <g id="opt-final" class="anim-step">
-          <text x="400" y="30" fill="var(--accent-green)" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimized Design</text>
-          <path d="M 100,180 C 180,130 350,100 600,150 C 720,175 720,190 600,200 C 350,225 180,215 100,180 Z" fill="rgba(0,230,118,0.15)" stroke="#00e676" stroke-width="2.5"/>
-          <!-- Optimized control points -->
-          <circle cx="100" cy="180" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="200" cy="140" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="350" cy="110" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="500" cy="140" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="650" cy="165" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="650" cy="190" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="500" cy="210" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="350" cy="218" r="5" fill="#00e676" opacity="0.8"/>
-          <circle cx="200" cy="210" r="5" fill="#00e676" opacity="0.8"/>
-        </g>
-        <!-- Results -->
+      <svg viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid lines (faint) -->
+        <line x1="200" y1="20" x2="200" y2="300" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+        <line x1="550" y1="20" x2="550" y2="300" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+        <line x1="50" y1="80" x2="750" y2="80" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+        <line x1="50" y1="200" x2="750" y2="200" stroke="#1a2050" stroke-width="1" opacity="0.4"/>
+
+        <!-- Optimizer block (diagonal, row 0) -->
+        <rect x="125" y="55" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="2"/>
+        <text x="200" y="85" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimizer</text>
+
+        <!-- Analysis block (diagonal, row 1) -->
         <g class="anim-step">
-          <rect x="150" y="280" rx="8" width="200" height="45" fill="rgba(255,64,129,0.08)" stroke="#ff4081" stroke-width="1"/>
-          <text x="250" y="307" fill="#ff4081" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">Initial: C_D = 0.045</text>
-          <rect x="450" y="280" rx="8" width="200" height="45" fill="rgba(0,230,118,0.08)" stroke="#00e676" stroke-width="1"/>
-          <text x="550" y="307" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif">Optimal: C_D = 0.011</text>
+          <rect x="475" y="175" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="2"/>
+          <text x="550" y="205" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Analysis</text>
+
+          <!-- Data: x* (Optimizer → Analysis, above diagonal) -->
+          <polygon points="483,55 617,55 609,95 475,95" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="546" y="80" fill="#ff6b35" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">x*</text>
+
+          <!-- Connecting lines -->
+          <line x1="275" y1="80" x2="475" y2="80" stroke="#6b7394" stroke-width="2"/>
+          <line x1="550" y1="95" x2="550" y2="175" stroke="#6b7394" stroke-width="2"/>
+        </g>
+
+        <!-- Data: f*, g* (Analysis → Optimizer, below diagonal) -->
+        <g class="anim-step">
+          <polygon points="133,175 267,175 259,215 125,215" fill="var(--bg-card)" stroke="#b388ff" stroke-width="1.5"/>
+          <text x="196" y="200" fill="#b388ff" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">f*, g*</text>
+
+          <!-- Connecting lines -->
+          <line x1="475" y1="200" x2="267" y2="200" stroke="#6b7394" stroke-width="2"/>
+          <line x1="200" y1="215" x2="200" y2="105" stroke="#6b7394" stroke-width="2" marker-end="url(#arrowhead-gray)"/>
+        </g>
+
+        <!-- Process numbers -->
+        <g class="anim-step">
+          <circle cx="140" cy="270" r="14" fill="none" stroke="#ffd740" stroke-width="2"/>
+          <text x="140" y="275" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">0</text>
+          <line x1="154" y1="270" x2="476" y2="270" stroke="#ffd740" stroke-width="2" stroke-dasharray="6,4"/>
+          <circle cx="490" cy="270" r="14" fill="none" stroke="#ffd740" stroke-width="2"/>
+          <text x="490" y="275" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700">1</text>
+          <text x="600" y="275" fill="var(--text-dim)" font-size="12" font-family="Inter, sans-serif">Iterate until converged</text>
         </g>
       </svg>
     </div>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 28 — Applications
-     ============================================================ -->
+<!-- SLIDE 28 — XDSM: Coupled Analysis / MDA (NEW) -->
 <section class="slide layout-center" id="slide-28">
   <div class="slide-content">
-    <h2>Real-World Applications</h2>
-    <div class="card-row" style="max-width:900px; margin:20px auto;">
-      <div class="card" style="text-align:center;">
-        <p class="label" style="color:var(--accent-cyan);">Aerospace</p>
-        <p style="font-size:clamp(16px,1.6vw,22px);">Wing &amp; fuselage design, turbine blades, engine nacelles</p>
-      </div>
-      <div class="card anim-step" style="text-align:center;">
-        <p class="label" style="color:var(--accent-orange);">Automotive</p>
-        <p style="font-size:clamp(16px,1.6vw,22px);">Body aerodynamics, crash structures, NVH optimization</p>
-      </div>
-      <div class="card anim-step" style="text-align:center;">
-        <p class="label" style="color:var(--accent-green);">Turbomachinery</p>
-        <p style="font-size:clamp(16px,1.6vw,22px);">Compressor &amp; turbine blade profiles, diffuser shapes</p>
-      </div>
-      <div class="card anim-step" style="text-align:center;">
-        <p class="label" style="color:var(--accent-purple);">Structures</p>
-        <p style="font-size:clamp(16px,1.6vw,22px);">Topology optimization, lightweight brackets, compliant mechanisms</p>
+    <h2>XDSM: Coupled Analysis (MDA)</h2>
+    <p class="small-text" style="color:var(--text-dim);">When disciplines are coupled, they must iterate to consistency.</p>
+    <div class="diagram-container large" style="margin-top:16px;">
+      <svg viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid -->
+        <line x1="200" y1="20" x2="200" y2="300" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="550" y1="20" x2="550" y2="300" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="50" y1="80" x2="750" y2="80" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="50" y1="200" x2="750" y2="200" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+
+        <!-- Aero block -->
+        <rect x="125" y="55" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="2"/>
+        <text x="200" y="85" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Aerodynamics</text>
+
+        <!-- Structures block -->
+        <g class="anim-step">
+          <rect x="475" y="175" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="2"/>
+          <text x="550" y="205" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Structures</text>
+        </g>
+
+        <!-- Loads: Aero → Structures (above diagonal) -->
+        <g class="anim-step">
+          <polygon points="483,55 617,55 609,95 475,95" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="546" y="80" fill="#00d4ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">Loads</text>
+          <line x1="275" y1="80" x2="475" y2="80" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="550" y1="95" x2="550" y2="175" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+        </g>
+
+        <!-- Displacements: Structures → Aero (below diagonal) -->
+        <g class="anim-step">
+          <polygon points="133,175 267,175 259,215 125,215" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="196" y="200" fill="#ff6b35" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Displacements</text>
+          <line x1="475" y1="200" x2="267" y2="200" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="200" y1="215" x2="200" y2="105" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead-orange)"/>
+        </g>
+
+        <!-- Iteration annotation -->
+        <g class="anim-step">
+          <rect x="250" y="250" width="300" height="45" rx="8" fill="rgba(255,215,64,0.08)" stroke="#ffd740" stroke-width="1.5"/>
+          <text x="400" y="268" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Fixed-point iteration (Gauss&ndash;Seidel)</text>
+          <text x="400" y="286" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Repeat until loads and displacements converge</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 29 — XDSM: MDF Architecture (NEW) -->
+<section class="slide layout-center" id="slide-29">
+  <div class="slide-content">
+    <h2>MDF: Multidisciplinary Feasible</h2>
+    <p>The most common MDO architecture: the optimizer drives an inner <span class="text-cyan">MDA loop</span>.</p>
+    <div class="anim-step">
+      <div class="diagram-container large" style="margin-top:12px;">
+        <svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Optimizer -->
+          <rect x="50" y="30" width="140" height="50" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="2"/>
+          <text x="120" y="60" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimizer</text>
+
+          <!-- Arrow to MDA -->
+          <line x1="190" y1="55" x2="240" y2="55" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
+
+          <!-- MDA box -->
+          <rect x="245" y="15" width="350" height="80" rx="10" fill="rgba(255,215,64,0.05)" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="6,4"/>
+          <text x="420" y="35" fill="#ffd740" font-size="11" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">MDA (Inner Loop)</text>
+
+          <!-- Aero inside MDA -->
+          <rect x="270" y="45" width="120" height="40" rx="6" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="330" y="70" fill="#00d4ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Aero</text>
+
+          <!-- Structures inside MDA -->
+          <rect x="450" y="45" width="120" height="40" rx="6" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="510" y="70" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Structures</text>
+
+          <!-- Coupling arrows -->
+          <line x1="390" y1="58" x2="445" y2="58" stroke="#6b7394" stroke-width="1" marker-end="url(#arrowhead-white)"/>
+          <line x1="445" y1="72" x2="390" y2="72" stroke="#6b7394" stroke-width="1" marker-end="url(#arrowhead-white)"/>
+
+          <!-- Feedback to optimizer -->
+          <line x1="595" y1="55" x2="650" y2="55" stroke="#6b7394" stroke-width="1.5"/>
+          <line x1="650" y1="55" x2="650" y2="130" stroke="#6b7394" stroke-width="1.5"/>
+          <line x1="650" y1="130" x2="120" y2="130" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="6,4"/>
+          <line x1="120" y1="130" x2="120" y2="85" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrowhead-yellow)"/>
+          <text x="385" y="148" fill="#ffd740" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">f*, g* &rarr; update x &rarr; re-run MDA</text>
+        </svg>
       </div>
     </div>
     <div class="anim-step">
-      <div class="key-insight" style="max-width:700px; margin:20px auto;">
-        <p>The adjoint method has enabled optimization of problems with millions of state variables and thousands of design variables.</p>
+      <blockquote style="max-width:700px; margin:8px auto; font-size:clamp(12px,1.2vw,16px);">
+        <p>&ldquo;MDF is the most straightforward MDO architecture. The optimizer sees a consistent multidisciplinary system at every iteration.&rdquo;</p>
+        <span class="attribution">&mdash; Martins &amp; Lambe, 2013</span>
+      </blockquote>
+    </div>
+    <div class="anim-step">
+      <div class="two-col" style="max-width:700px; margin:12px auto;">
+        <div class="card" style="border-top:3px solid var(--accent-green);">
+          <p class="label" style="color:var(--accent-green);">Pros</p>
+          <p style="font-size:clamp(14px,1.4vw,20px);">Physics always consistent. Off-the-shelf optimizers work. Robust.</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent-pink);">
+          <p class="label" style="color:var(--accent-pink);">Cons</p>
+          <p style="font-size:clamp(14px,1.4vw,20px);">MDA must converge at every optimization iteration. Can be expensive.</p>
+        </div>
+      </div>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight" style="max-width:700px; margin:12px auto;">
+        <p>MDF guarantees multidisciplinary feasibility at every step &mdash; the safest approach for coupled problems.</p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- SLIDE 30 — Aerostructural Problem (NEW) -->
+<section class="slide layout-split" id="slide-30">
+  <div class="slide-text">
+    <p class="label">Case Study</p>
+    <h2>Aerostructural Wing Optimization</h2>
+    <p>A transport aircraft wing where <span class="text-cyan">aerodynamic loads</span> deform the <span class="text-orange">structure</span>, which changes the shape, which changes the loads...</p>
+    <div class="anim-step">
+      <div class="card-row">
+        <div class="card">
+          <p class="big-number text-cyan" style="font-size:clamp(28px,3.5vw,48px);">311</p>
+          <p style="font-size:clamp(14px,1.4vw,20px);">Design variables<br><span class="small-text">shape + thickness + twist</span></p>
+        </div>
+        <div class="card">
+          <p class="big-number text-pink" style="font-size:clamp(28px,3.5vw,48px);">152</p>
+          <p style="font-size:clamp(14px,1.4vw,20px);">Constraints<br><span class="small-text">stress, buckling, lift, volume</span></p>
+        </div>
+      </div>
+    </div>
+    <div class="anim-step">
+      <p class="citation">[Kenway et al., J. Aircraft, 2014]</p>
+    </div>
+  </div>
+  <div class="slide-visual">
+    <div class="diagram-container">
+      <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Wing structure -->
+        <path d="M 80,200 L 420,140 L 450,170 L 440,200 L 420,220 L 80,200 Z" fill="rgba(255,107,53,0.1)" stroke="#ff6b35" stroke-width="2"/>
+        <!-- Internal structure lines -->
+        <line x1="150" y1="195" x2="150" y2="205" stroke="#ff6b35" stroke-width="1" opacity="0.5"/>
+        <line x1="220" y1="188" x2="220" y2="208" stroke="#ff6b35" stroke-width="1" opacity="0.5"/>
+        <line x1="290" y1="180" x2="290" y2="210" stroke="#ff6b35" stroke-width="1" opacity="0.5"/>
+        <line x1="360" y1="168" x2="360" y2="215" stroke="#ff6b35" stroke-width="1" opacity="0.5"/>
+
+        <!-- Aero pressure arrows (downward on top, upward on bottom = lift) -->
+        <g class="anim-step">
+          <line x1="150" y1="160" x2="150" y2="190" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+          <line x1="250" y1="150" x2="250" y2="183" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrowhead-cyan)"/>
+          <line x1="350" y1="135" x2="350" y2="165" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+          <text x="250" y="140" fill="#00d4ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Pressure loads</text>
+        </g>
+
+        <!-- Coupling cycle -->
+        <g class="anim-step">
+          <!-- Loads arrow down -->
+          <text x="100" y="280" fill="#00d4ff" font-size="13" font-family="Inter, sans-serif" font-weight="600">Aero loads</text>
+          <line x1="170" y1="275" x2="210" y2="275" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrowhead-cyan)"/>
+          <!-- Structures box -->
+          <rect x="215" y="258" width="80" height="35" rx="6" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="255" y="280" fill="#ff6b35" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Structure</text>
+          <!-- Displacement arrow right -->
+          <line x1="295" y1="275" x2="335" y2="275" stroke="#ff6b35" stroke-width="2" marker-end="url(#arrowhead-orange)"/>
+          <text x="400" y="280" fill="#ff6b35" font-size="13" font-family="Inter, sans-serif" font-weight="600">Deflection</text>
+          <!-- Feedback loop -->
+          <path d="M 400,290 L 400,320 L 100,320 L 100,290" fill="none" stroke="#ffd740" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-yellow)"/>
+          <text x="250" y="340" fill="#ffd740" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Shape change &rarr; re-analyze</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 31 — Aerostructural XDSM (NEW) -->
+<section class="slide layout-center" id="slide-31">
+  <div class="slide-content">
+    <h2>Aerostructural XDSM</h2>
+    <p class="small-text" style="color:var(--text-dim);">The full optimization process: SNOPT optimizer driving coupled ADflow + TACS analysis.</p>
+    <div class="diagram-container large" style="margin-top:16px;">
+      <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid -->
+        <line x1="130" y1="15" x2="130" y2="310" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="400" y1="15" x2="400" y2="310" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="650" y1="15" x2="650" y2="310" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="20" y1="65" x2="780" y2="65" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="20" y1="165" x2="780" y2="165" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+        <line x1="20" y1="260" x2="780" y2="260" stroke="#1a2050" stroke-width="1" opacity="0.3"/>
+
+        <!-- SNOPT (diagonal, row 0) -->
+        <rect x="55" y="40" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="2"/>
+        <text x="130" y="70" fill="#00e676" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">SNOPT</text>
+
+        <!-- x* data (row 0, col 1 + col 2) -->
+        <g class="anim-step">
+          <polygon points="333,40 467,40 459,80 325,80" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="396" y="65" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">x_shape*</text>
+          <line x1="205" y1="65" x2="325" y2="65" stroke="#6b7394" stroke-width="1.5"/>
+
+          <polygon points="583,40 717,40 709,80 575,80" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="646" y="65" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">x_struct*</text>
+          <line x1="467" y1="65" x2="575" y2="65" stroke="#6b7394" stroke-width="1.5"/>
+        </g>
+
+        <!-- ADflow (diagonal, row 1) -->
+        <g class="anim-step">
+          <rect x="325" y="140" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="2"/>
+          <text x="400" y="170" fill="#00d4ff" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">ADflow (CFD)</text>
+          <line x1="400" y1="80" x2="400" y2="140" stroke="#6b7394" stroke-width="1.5"/>
+
+          <!-- TACS (diagonal, row 2) -->
+          <rect x="575" y="235" width="150" height="50" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="2"/>
+          <text x="650" y="265" fill="#ff6b35" font-size="14" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">TACS (FEA)</text>
+          <line x1="650" y1="80" x2="650" y2="235" stroke="#6b7394" stroke-width="1.5"/>
+        </g>
+
+        <!-- Coupling data -->
+        <g class="anim-step">
+          <!-- Loads: ADflow → TACS (above diagonal for row 1) -->
+          <polygon points="583,140 717,140 709,180 575,180" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1"/>
+          <text x="646" y="165" fill="#00d4ff" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Loads</text>
+          <line x1="475" y1="165" x2="575" y2="165" stroke="#00d4ff" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="650" y1="180" x2="650" y2="235" stroke="#00d4ff" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- Displacements: TACS → ADflow (below diagonal for row 2) -->
+          <polygon points="333,235 467,235 459,275 325,275" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1"/>
+          <text x="396" y="260" fill="#ff6b35" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Disp.</text>
+          <line x1="575" y1="260" x2="467" y2="260" stroke="#ff6b35" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="400" y1="275" x2="400" y2="190" stroke="#ff6b35" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowhead-orange)"/>
+        </g>
+
+        <!-- f,g feedback to SNOPT -->
+        <g class="anim-step">
+          <polygon points="63,140 197,140 189,180 55,180" fill="var(--bg-card)" stroke="#b388ff" stroke-width="1.5"/>
+          <text x="126" y="165" fill="#b388ff" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">f, g</text>
+          <line x1="325" y1="165" x2="197" y2="165" stroke="#b388ff" stroke-width="1.5"/>
+          <line x1="130" y1="180" x2="130" y2="90" stroke="#b388ff" stroke-width="1.5" marker-end="url(#arrowhead-purple)"/>
+
+          <!-- Process labels -->
+          <text x="400" y="310" fill="var(--text-dim)" font-size="12" text-anchor="middle" font-family="Inter, sans-serif">Optimizer iterates until fuel burn is minimized</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 32 — The Coupled Adjoint (NEW) -->
+<section class="slide layout-center" id="slide-32">
+  <div class="slide-content">
+    <h2>The Coupled Adjoint</h2>
+    <p>For MDO, the adjoint equations become <span class="text-purple">coupled</span> across disciplines:</p>
+    <div class="anim-step">
+      <div class="highlight-box purple" style="max-width:700px; margin:16px auto;">
+        <div class="formula" style="font-size:clamp(16px,1.8vw,26px); color:var(--accent-purple);">
+          <table style="margin:0 auto; border-collapse:collapse;">
+            <tr>
+              <td style="border:none; padding:4px;"><span style="font-size:0.8em;">[ &part;R<sub>A</sub>/&part;u<sub>A</sub></span></td>
+              <td style="border:none; padding:4px;"><span style="font-size:0.8em;">&part;R<sub>A</sub>/&part;u<sub>S</sub> ]</span></td>
+              <td style="border:none; padding:4px; font-size:0.8em;" rowspan="2"><span style="color:var(--accent-purple);">&psi;</span> = <span style="color:var(--accent-green);">(&part;f/&part;u)&#7488;</span></td>
+            </tr>
+            <tr>
+              <td style="border:none; padding:4px;"><span style="font-size:0.8em;">[ &part;R<sub>S</sub>/&part;u<sub>A</sub></span></td>
+              <td style="border:none; padding:4px;"><span style="font-size:0.8em;">&part;R<sub>S</sub>/&part;u<sub>S</sub> ]&#7488;</span></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="anim-step">
+      <blockquote style="max-width:700px; margin:12px auto;">
+        <p>&ldquo;The coupled adjoint method extends the efficiency of the adjoint approach to multidisciplinary systems, enabling gradient computation at a cost independent of the number of design variables.&rdquo;</p>
+        <span class="attribution">&mdash; Kenway et al., Prog. Aerosp. Sci., 2019</span>
+      </blockquote>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight" style="max-width:700px; margin:12px auto;">
+        <p>The coupled adjoint preserves the adjoint&rsquo;s key advantage: all 311 gradients from a single coupled linear solve.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 33 — Aerostructural Results (NEW) -->
+<section class="slide layout-center" id="slide-33">
+  <div class="slide-content">
+    <h2>Aerostructural Optimization Results</h2>
+    <div class="anim-step">
+      <div class="two-col" style="max-width:700px; margin:20px auto;">
+        <div class="card" style="text-align:center;">
+          <p class="big-number text-green" style="font-size:clamp(40px,6vw,80px);">6.6%</p>
+          <p style="font-size:clamp(16px,1.8vw,24px);">Fuel burn reduction</p>
+          <p class="small-text">vs. single-discipline optimization</p>
+        </div>
+        <div class="card" style="text-align:center;">
+          <p class="big-number text-cyan" style="font-size:clamp(40px,6vw,80px);">~50</p>
+          <p style="font-size:clamp(16px,1.8vw,24px);">Optimization iterations</p>
+          <p class="small-text">each with coupled adjoint gradients</p>
+        </div>
+      </div>
+    </div>
+    <div class="anim-step">
+      <div class="diagram-container" style="max-width:700px;">
+        <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg">
+          <!-- Initial wing -->
+          <path d="M 30,90 L 220,60 L 240,80 L 235,100 L 220,110 L 30,90 Z" fill="rgba(255,64,129,0.15)" stroke="#ff4081" stroke-width="2"/>
+          <text x="130" y="135" fill="#ff4081" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Initial</text>
+          <!-- Arrow -->
+          <line x1="260" y1="85" x2="310" y2="85" stroke="#ffd740" stroke-width="2" marker-end="url(#arrowhead-yellow)"/>
+          <!-- Optimized wing (thinner root, higher AR feel) -->
+          <path d="M 330,90 L 570,50 L 595,70 L 585,90 L 570,100 L 330,90 Z" fill="rgba(0,230,118,0.15)" stroke="#00e676" stroke-width="2.5"/>
+          <text x="460" y="135" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif">Optimized</text>
+          <!-- Labels -->
+          <text x="460" y="155" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">Higher aspect ratio, optimized thickness distribution</text>
+        </svg>
+      </div>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight" style="max-width:700px; margin:12px auto;">
+        <p>MDO finds designs that no single-discipline approach could reach &mdash; the coupled optimum is fundamentally different from sequential optimization.</p>
+      </div>
+      <p class="citation">[Kenway et al., J. Aircraft, 2014]</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 34 — Applications Gallery (Adapted) -->
+<section class="slide layout-center" id="slide-34">
+  <div class="slide-content">
+    <h2>Applications of EDO</h2>
+    <div class="card-row" style="max-width:1000px; margin:20px auto; flex-wrap:wrap;">
+      <div class="card" style="text-align:center; min-width:170px;">
+        <p class="label" style="color:var(--accent-cyan);">Aerospace</p>
+        <p style="font-size:clamp(14px,1.4vw,20px);">Wing + engine nacelle co-design. <span class="text-cyan">8% fuel burn savings</span>.</p>
+      </div>
+      <div class="card anim-step" style="text-align:center; min-width:170px;">
+        <p class="label" style="color:var(--accent-orange);">Automotive</p>
+        <p style="font-size:clamp(14px,1.4vw,20px);">Body aerodynamics + crash structures. <span class="text-orange">15% drag reduction</span>.</p>
+      </div>
+      <div class="card anim-step" style="text-align:center; min-width:170px;">
+        <p class="label" style="color:var(--accent-green);">Wind Energy</p>
+        <p style="font-size:clamp(14px,1.4vw,20px);">Blade aerostructural design. <span class="text-green">5% annual energy gain</span>.</p>
+      </div>
+      <div class="card anim-step" style="text-align:center; min-width:170px;">
+        <p class="label" style="color:var(--accent-purple);">Structures</p>
+        <p style="font-size:clamp(14px,1.4vw,20px);">Topology optimization with millions of variables. <span class="text-purple">50% lighter</span>.</p>
+      </div>
+      <div class="card anim-step" style="text-align:center; min-width:170px;">
+        <p class="label" style="color:var(--accent-yellow);">Turbomachinery</p>
+        <p style="font-size:clamp(14px,1.4vw,20px);">3D blade profile + cooling. <span class="text-yellow">3% efficiency gain</span>.</p>
+      </div>
+    </div>
+    <div class="anim-step">
+      <div class="key-insight" style="max-width:700px; margin:16px auto;">
+        <p>Gradient-based optimization with adjoint derivatives has enabled problems with <span class="text-green">millions</span> of state variables and thousands of design variables.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 35 — Section Transition -->
+<section class="slide layout-center section-transition" id="slide-35">
+  <div class="slide-content">
+    <h2>From individual components to <span class="gradient-text">complete systems</span>.</h2>
+    <div class="anim-step">
+      <p style="font-size:clamp(20px,2.4vw,34px); color:var(--text-secondary); margin-top:24px;">Let&rsquo;s bring it all together.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ============================================================
-     SLIDE 29 — Key Takeaways
+     ACT 5: TAKEAWAYS & REFERENCES
      ============================================================ -->
-<section class="slide layout-center" id="slide-29">
+
+<!-- SLIDE 36 — Key Takeaways -->
+<section class="slide layout-center" id="slide-36">
   <div class="slide-content">
     <h2>Key Takeaways</h2>
-    <ul style="max-width:800px; margin:20px auto;">
+    <ul style="max-width:850px; margin:20px auto;">
       <li>
-        <span class="text-cyan" style="font-weight:600;">Shape parametrization matters.</span>
-        <span style="color:var(--text-secondary);"> NURBS give smooth, flexible geometry with local control &mdash; ideal for optimization.</span>
-      </li>
-      <li class="anim-step bullet-orange">
-        <span class="text-orange" style="font-weight:600;">Gradient-based methods are essential</span>
-        <span style="color:var(--text-secondary);"> for high-dimensional design spaces. BFGS and SQP are the workhorses.</span>
-      </li>
-      <li class="anim-step bullet-green">
-        <span class="text-green" style="font-weight:600;">The adjoint method is the key enabler.</span>
-        <span style="color:var(--text-secondary);"> It computes all gradients at a cost independent of the number of design variables.</span>
+        <span class="text-cyan" style="font-weight:600;">Gradient-based optimization is essential</span>
+        <span style="color:var(--text-secondary);"> for high-dimensional engineering design spaces. BFGS and SQP are the workhorses.</span>
       </li>
       <li class="anim-step bullet-purple">
-        <span class="text-purple" style="font-weight:600;">Cost scales with functions, not variables.</span>
-        <span style="color:var(--text-secondary);"> 1 objective + few constraints = very few adjoint solves, regardless of shape complexity.</span>
+        <span class="text-purple" style="font-weight:600;">The adjoint method is the key enabler.</span>
+        <span style="color:var(--text-secondary);"> It computes all gradients at a cost independent of the number of design variables.</span>
+      </li>
+      <li class="anim-step bullet-orange">
+        <span class="text-orange" style="font-weight:600;">Algorithmic differentiation automates derivatives.</span>
+        <span style="color:var(--text-secondary);"> Forward and reverse modes map directly to direct and adjoint methods.</span>
+      </li>
+      <li class="anim-step bullet-green">
+        <span class="text-green" style="font-weight:600;">MDO optimizes the coupled system.</span>
+        <span style="color:var(--text-secondary);"> Aerostructural optimization finds designs that sequential approaches miss entirely.</span>
       </li>
       <li class="anim-step bullet-yellow">
-        <span class="text-yellow" style="font-weight:600;">This is state of the art.</span>
-        <span style="color:var(--text-secondary);"> NURBS + adjoint + gradient-based optimization powers design in aerospace, automotive, and beyond.</span>
+        <span class="text-yellow" style="font-weight:600;">The coupled adjoint scales MDO.</span>
+        <span style="color:var(--text-secondary);"> Hundreds of design variables across multiple disciplines, all gradients from one coupled solve.</span>
       </li>
     </ul>
   </div>
 </section>
 
-<!-- ============================================================
-     SLIDE 30 — References
-     ============================================================ -->
-<section class="slide layout-center" id="slide-30">
+<!-- SLIDE 37 — State of the Art (NEW) -->
+<section class="slide layout-split" id="slide-37">
+  <div class="slide-text">
+    <p class="label">Software Ecosystem</p>
+    <h2>State of the Art</h2>
+    <p>Open-source frameworks make MDO accessible to researchers and practitioners.</p>
+    <div class="anim-step">
+      <blockquote style="font-size:clamp(12px,1.2vw,16px);">
+        <p>&ldquo;OpenMDAO provides a modular framework that automatically computes coupled derivatives across components, enabling large-scale MDO.&rdquo;</p>
+        <span class="attribution">&mdash; Gray et al., Struct. Multidisc. Optim., 2019</span>
+      </blockquote>
+    </div>
+    <div class="anim-step">
+      <div class="card" style="margin:10px 0; border-left:3px solid var(--accent-cyan);">
+        <p style="margin:0;"><span class="text-cyan" style="font-weight:600;">OpenMDAO</span> &mdash; modular framework for multidisciplinary analysis and optimization. Automatic derivative computation across coupled systems.</p>
+        <p class="citation">[Gray et al., Struct. Multidisc. Optim., 2019]</p>
+      </div>
+    </div>
+    <div class="anim-step">
+      <div class="card" style="margin:10px 0; border-left:3px solid var(--accent-orange);">
+        <p style="margin:0;"><span class="text-orange" style="font-weight:600;">MACH-Aero</span> &mdash; high-fidelity aerostructural optimization toolchain: ADflow (CFD) + TACS (FEA) + pyOptSparse (optimizers).</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-visual">
+    <div class="diagram-container">
+      <svg viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg">
+        <!-- Software stack -->
+        <!-- Layer 1: Optimizer -->
+        <rect x="100" y="30" width="300" height="55" rx="8" fill="var(--bg-card)" stroke="#00e676" stroke-width="2"/>
+        <text x="250" y="52" fill="#00e676" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Optimizer</text>
+        <text x="250" y="72" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">SNOPT, IPOPT, pyOptSparse</text>
+
+        <!-- Layer 2: Framework -->
+        <g class="anim-step">
+          <rect x="100" y="105" width="300" height="55" rx="8" fill="var(--bg-card)" stroke="#ffd740" stroke-width="2"/>
+          <text x="250" y="127" fill="#ffd740" font-size="13" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">MDO Framework</text>
+          <text x="250" y="147" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">OpenMDAO (coupled derivatives)</text>
+          <line x1="250" y1="85" x2="250" y2="105" stroke="#6b7394" stroke-width="1.5" marker-end="url(#arrowhead-white)"/>
+        </g>
+
+        <!-- Layer 3: Solvers -->
+        <g class="anim-step">
+          <rect x="50" y="180" width="180" height="55" rx="8" fill="var(--bg-card)" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="140" y="202" fill="#00d4ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">CFD Solver</text>
+          <text x="140" y="222" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">ADflow</text>
+
+          <rect x="270" y="180" width="180" height="55" rx="8" fill="var(--bg-card)" stroke="#ff6b35" stroke-width="1.5"/>
+          <text x="360" y="202" fill="#ff6b35" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">FEA Solver</text>
+          <text x="360" y="222" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">TACS</text>
+
+          <line x1="180" y1="160" x2="140" y2="180" stroke="#6b7394" stroke-width="1.5"/>
+          <line x1="320" y1="160" x2="360" y2="180" stroke="#6b7394" stroke-width="1.5"/>
+        </g>
+
+        <!-- Layer 4: Geometry / Mesh -->
+        <g class="anim-step">
+          <rect x="100" y="260" width="300" height="50" rx="8" fill="var(--bg-card)" stroke="#b388ff" stroke-width="1.5"/>
+          <text x="250" y="282" fill="#b388ff" font-size="12" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">Geometry + Mesh</text>
+          <text x="250" y="300" fill="var(--text-dim)" font-size="11" text-anchor="middle" font-family="Inter, sans-serif">pyGeo, IDWarp (FFD parametrization)</text>
+          <line x1="140" y1="235" x2="180" y2="260" stroke="#6b7394" stroke-width="1"/>
+          <line x1="360" y1="235" x2="320" y2="260" stroke="#6b7394" stroke-width="1"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 38 — Historical Timeline (NEW) -->
+<section class="slide layout-center" id="slide-38">
+  <div class="slide-content">
+    <h2>Historical Timeline</h2>
+    <div class="timeline" style="max-width:700px; margin:20px auto;">
+      <div class="timeline-item">
+        <span class="year">1974</span>
+        <span class="event">Pironneau derives adjoint for shape optimization in fluid mechanics</span>
+      </div>
+      <div class="timeline-item anim-step">
+        <span class="year">1986</span>
+        <span class="event">Haftka &amp; Grandhi survey structural shape optimization methods</span>
+      </div>
+      <div class="timeline-item anim-step">
+        <span class="year">1988</span>
+        <span class="event">Jameson applies adjoint to aerodynamic design via control theory</span>
+      </div>
+      <div class="timeline-item anim-step">
+        <span class="year">2008</span>
+        <span class="event">Griewank &amp; Walther publish <em>Evaluating Derivatives</em>, formalizing AD</span>
+      </div>
+      <div class="timeline-item anim-step">
+        <span class="year">2013</span>
+        <span class="event">Martins &amp; Hwang unify derivative methods (UDE); Martins &amp; Lambe survey MDO architectures</span>
+      </div>
+      <div class="timeline-item anim-step">
+        <span class="year">2019</span>
+        <span class="event">OpenMDAO framework released; Kenway et al. publish coupled adjoint review</span>
+      </div>
+      <div class="timeline-item anim-step">
+        <span class="year">2022</span>
+        <span class="event">Martins &amp; Ning publish <em>Engineering Design Optimization</em></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 39 — References -->
+<section class="slide layout-center" id="slide-39">
   <div class="slide-content">
     <h2>References &amp; Further Reading</h2>
-    <div style="max-width:700px; margin:16px auto; text-align:left;">
+    <div style="max-width:750px; margin:16px auto; text-align:left;">
       <p class="label" style="color:var(--accent-cyan);">Primary Reference</p>
-      <p style="font-size:clamp(15px,1.5vw,22px);">Martins &amp; Ning, <em>Engineering Design Optimization</em>, Cambridge University Press, 2022<br>
+      <p style="font-size:clamp(14px,1.4vw,20px);">Martins &amp; Ning, <em>Engineering Design Optimization</em>, Cambridge University Press, 2022<br>
       <span class="small-text" style="color:var(--accent-cyan);">mdobook.github.io</span></p>
+
       <div class="anim-step">
-        <p class="label" style="color:var(--accent-orange); margin-top:16px;">Key Papers</p>
-        <p style="font-size:clamp(13px,1.3vw,18px); color:var(--text-dim);">
-          Pironneau, "On optimum design in fluid mechanics," 1974<br>
-          Jameson, "Aerodynamic design via control theory," 1988<br>
-          Haftka &amp; Grandhi, "Structural shape optimization &mdash; A survey," 1986<br>
-          Martins, "Perspectives on aerodynamic design optimization," 2020<br>
-          Peter &amp; Dwight, "Numerical sensitivity analysis for aerodynamic optimization," 2010
+        <p class="label" style="color:var(--accent-orange); margin-top:14px;">Adjoint &amp; Derivatives</p>
+        <p style="font-size:clamp(12px,1.2vw,17px); color:var(--text-dim);">
+          Pironneau, &ldquo;On optimum design in fluid mechanics,&rdquo; <em>J. Fluid Mech.</em>, 1974<br>
+          Jameson, &ldquo;Aerodynamic design via control theory,&rdquo; <em>J. Sci. Comput.</em>, 1988<br>
+          Griewank &amp; Walther, <em>Evaluating Derivatives</em>, SIAM, 2008<br>
+          Martins &amp; Hwang, &ldquo;Review and unification of methods for computing derivatives,&rdquo; <em>AIAA J.</em>, 2013<br>
+          Kenway et al., &ldquo;Effective adjoint approaches for computational fluid dynamics,&rdquo; <em>Prog. Aerosp. Sci.</em>, 2019
         </p>
       </div>
+
       <div class="anim-step">
-        <p class="label" style="color:var(--accent-green); margin-top:16px;">Shape Parametrization</p>
-        <p style="font-size:clamp(13px,1.3vw,18px); color:var(--text-dim);">
-          Piegl &amp; Tiller, <em>The NURBS Book</em>, Springer, 1997<br>
-          Samareh, "Survey of shape parameterization techniques for high-fidelity MDO," 2001
+        <p class="label" style="color:var(--accent-purple); margin-top:14px;">MDO &amp; Applications</p>
+        <p style="font-size:clamp(12px,1.2vw,17px); color:var(--text-dim);">
+          Lambe &amp; Martins, &ldquo;Extensions to the design structure matrix,&rdquo; <em>Struct. Multidisc. Optim.</em>, 2012<br>
+          Martins &amp; Lambe, &ldquo;MDO: A survey of architectures,&rdquo; <em>Struct. Multidisc. Optim.</em>, 2013<br>
+          Kenway et al., &ldquo;Multipoint high-fidelity aerostructural optimization,&rdquo; <em>J. Aircraft</em>, 2014<br>
+          Gray et al., &ldquo;OpenMDAO: An open-source framework for MDO,&rdquo; <em>Struct. Multidisc. Optim.</em>, 2019
+        </p>
+      </div>
+
+      <div class="anim-step">
+        <p class="label" style="color:var(--accent-green); margin-top:14px;">Optimization Methods</p>
+        <p style="font-size:clamp(12px,1.2vw,17px); color:var(--text-dim);">
+          Nocedal &amp; Wright, <em>Numerical Optimization</em>, Springer, 2006<br>
+          Haftka &amp; Grandhi, &ldquo;Structural shape optimization &mdash; A survey,&rdquo; <em>CMAME</em>, 1986<br>
+          Gill et al., &ldquo;SNOPT: An SQP algorithm for large-scale constrained optimization,&rdquo; <em>SIAM Rev.</em>, 2005
         </p>
       </div>
     </div>
@@ -1199,7 +1685,7 @@
      UI ELEMENTS
      ============================================================ -->
 <div class="progress-bar"></div>
-<div class="slide-counter">1 / 30</div>
+<div class="slide-counter">1 / 39</div>
 <div class="step-indicator"></div>
 <div class="nav-hint">Use &larr; &rarr; arrow keys to navigate &middot; F for fullscreen</div>
 
@@ -1385,7 +1871,7 @@
 </script>
 
 <!-- ============================================================
-     INTERACTIVE: GRADIENT DESCENT (Slide 11)
+     INTERACTIVE: GRADIENT DESCENT (Slide 10)
      ============================================================ -->
 <script>
 (function() {
@@ -1547,7 +2033,7 @@
 </script>
 
 <!-- ============================================================
-     INTERACTIVE: COST COMPARISON (Slide 23)
+     INTERACTIVE: COST COMPARISON (Slide 21)
      ============================================================ -->
 <script>
 (function() {
