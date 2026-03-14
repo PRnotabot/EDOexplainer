@@ -41,8 +41,10 @@ html, body {
 
 /* --- Presentation Container --- */
 .presentation {
-  width: 100vw; height: 100vh;
-  position: relative;
+  width: 1400px; height: 900px;
+  position: fixed;
+  top: 0; left: 0;
+  transform-origin: top left;
   overflow: hidden;
 }
 
