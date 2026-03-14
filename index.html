@@ -2090,13 +2090,15 @@
 (function () {
   function fit() {
     var el = document.querySelector('.presentation');
+    if (document.fullscreenElement) return;
     var s = Math.min(window.innerWidth / 1400, window.innerHeight / 900);
     el.style.transform = 'scale(' + s + ')';
-    el.style.marginLeft = Math.max(0, (window.innerWidth  - 1400 * s) / 2) + 'px';
-    el.style.marginTop  = Math.max(0, (window.innerHeight - 900  * s) / 2) + 'px';
+    el.style.left = ((window.innerWidth  - 1400 * s) / 2) + 'px';
+    el.style.top  = ((window.innerHeight - 900  * s) / 2) + 'px';
   }
   fit();
   window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
 })();
 </script>
 
